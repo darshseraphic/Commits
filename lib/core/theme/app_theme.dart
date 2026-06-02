@@ -172,7 +172,13 @@ abstract final class AppTheme {
         ),
 
         // ── Cards ─────────────────────────────────────────────────────────
-
+        cardTheme: CardThemeData(
+          elevation: 0,
+          color: Colors.white,
+          surfaceTintColor: Colors.transparent,
+          shape: _cardShape,
+          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+        ),
 
         // ── Input Fields ──────────────────────────────────────────────────
         inputDecorationTheme: InputDecorationTheme(
@@ -262,7 +268,13 @@ abstract final class AppTheme {
           ),
         ),
 
-
+        cardTheme: CardThemeData(
+          elevation: 0,
+          color: _cardDark,
+          surfaceTintColor: Colors.transparent,
+          shape: _cardShape,
+          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+        ),
 
         inputDecorationTheme: InputDecorationTheme(
           filled: true,

@@ -20,22 +20,21 @@
 
 import 'package:drift/drift.dart';
 import 'package:flutter/foundation.dart';
-
 import '../../core/utils/app_exceptions.dart';
 import '../database/app_database.dart';
 import '../database/daos/tasks_dao.dart';
 import '../models/task_model.dart';
-import '../services/notification_service.dart';
+import '../services/notification_scheduler.dart'; // Switched from notification_service.dart
 
 class TaskRepository {
   const TaskRepository({
     required TasksDao tasksDao,
-    required NotificationService notificationService,
+    required NotificationScheduler notificationScheduler, // Switched to NotificationScheduler
   })  : _dao = tasksDao,
-        _notifications = notificationService;
+        _notifications = notificationScheduler;
 
   final TasksDao _dao;
-  final NotificationService _notifications;
+  final NotificationScheduler _notifications; // Switched to NotificationScheduler
 
   // ── Streams (pass-through with mapping) ───────────────────────────────────
 
@@ -211,15 +210,15 @@ class TaskRepository {
   // ── Mapping: Drift → Domain ───────────────────────────────────────────────
 
   static TaskModel _toModel(Task row) => TaskModel(
-        id: row.id,
-        title: row.title,
-        description: row.description,
-        type: TaskModel.typeFromString(row.type),
-        priority: TaskModel.priorityFromString(row.priority),
-        isCompleted: row.isCompleted,
-        createdAt: row.createdAt,
-        dueDate: row.dueDate,
-        sortOrder: row.sortOrder,
-        notificationId: row.notificationId,
-      );
+    id: row.id,
+    title: row.title,
+    description: row.description,
+    type: TaskModel.typeFromString(row.type),
+    priority: TaskModel.priorityFromString(row.priority),
+    isCompleted: row.isCompleted,
+    createdAt: row.createdAt,
+    dueDate: row.dueDate,
+    sortOrder: row.sortOrder,
+    notificationId: row.notificationId,
+  );
 }

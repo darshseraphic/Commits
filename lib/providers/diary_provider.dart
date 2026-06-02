@@ -27,7 +27,7 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
+import '../data/repositories/diary_repository.dart';
 import '../core/utils/app_exceptions.dart';
 import '../data/models/diary_entry_model.dart';
 import 'repository_providers.dart';

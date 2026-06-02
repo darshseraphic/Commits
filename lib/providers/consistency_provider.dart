@@ -1,7 +1,7 @@
 // lib/providers/consistency_provider.dart — Phase 5 (clean rewrite)
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
+import 'package:asrio/data/models/habit_model.dart';
 import '../data/models/app_usage_model.dart';
 import '../data/models/mood_model.dart';
 import 'database_provider.dart';
