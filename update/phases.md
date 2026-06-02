@@ -1668,3 +1668,169 @@ A quick audit will find missed interactions.
 **`DiaryScreen` content preview:**
 Right now the diary list shows "Tap to continue writing..." for every entry regardless of content. Phase 7 decrypts the first 100 characters of each entry on load to show a real preview. This uses a background isolate so the list doesn't lag while decrypting.
 
+## Complete File:-
+
+```
+C:\Users\Darshvici\StudioProjects\Asrio\
+│
+├── pubspec.yaml                                    ← Phase 6 version (REPLACE)
+│
+├── assets\
+│   ├── Asrio.png                                   ← YOUR LOGO FILE (place here)
+│   ├── Asriofreeze.png                             ← YOUR FREEZE FILE (place here)
+│   ├── fonts\
+│   │   ├── DMSans-Regular.ttf                      ← Download DM Sans font
+│   │   ├── DMSans-Medium.ttf
+│   │   └── DMSans-SemiBold.ttf
+│   └── animations\                                 ← Empty for now (Lottie files later)
+│
+├── android\
+│   └── app\
+│       └── src\
+│           └── main\
+│               ├── AndroidManifest.xml             ← Phase 5 version (REPLACE)
+│               └── kotlin\
+│                   └── com\
+│                       └── darshvici\
+│                           └── asrio\
+│                               ├── MainActivity.kt         ← Phase 5 version (REPLACE)
+│                               └── UsageStatsPlugin.kt     ← Phase 5 version (NEW)
+│
+└── lib\
+    │
+    ├── main.dart                                   ← Phase 6 version
+    ├── app.dart                                    ← Phase 6 version
+    │
+    ├── core\
+    │   ├── theme\
+    │   │   ├── app_theme.dart                      ← Phase 1
+    │   │   ├── asrio_colors.dart                   ← Phase 3
+    │   │   └── asrio_text_styles.dart              ← Phase 3
+    │   │
+    │   ├── localization\
+    │   │   └── app_localizations_delegate.dart     ← Phase 1
+    │   │
+    │   ├── encryption\
+    │   │   └── encryption_service.dart             ← Phase 2
+    │   │
+    │   ├── utils\
+    │   │   └── app_exceptions.dart                 ← Phase 2
+    │   │
+    │   ├── services\
+    │   │   └── biometric_service.dart              ← Phase 4
+    │   │
+    │   └── router\
+    │       └── app_router.dart                     ← Phase 1 (kept for reference)
+    │
+    ├── data\
+    │   ├── database\
+    │   │   ├── app_database.dart                   ← Phase 5 version (schema v4)
+    │   │   ├── app_database.g.dart                 ← AUTO-GENERATED (build_runner)
+    │   │   └── daos\
+    │   │       ├── tasks_dao.dart                  ← Phase 2
+    │   │       ├── tasks_dao.g.dart                ← AUTO-GENERATED
+    │   │       ├── diary_dao.dart                  ← Phase 2
+    │   │       ├── diary_dao.g.dart                ← AUTO-GENERATED
+    │   │       ├── habits_dao.dart                 ← Phase 2
+    │   │       ├── habits_dao.g.dart               ← AUTO-GENERATED
+    │   │       ├── activity_dao.dart               ← Phase 2
+    │   │       ├── activity_dao.g.dart             ← AUTO-GENERATED
+    │   │       ├── mood_dao.dart                   ← Phase 5
+    │   │       └── mood_dao.g.dart                 ← AUTO-GENERATED
+    │   │
+    │   ├── models\
+    │   │   ├── task_model.dart                     ← Phase 2
+    │   │   ├── diary_entry_model.dart              ← Phase 2
+    │   │   ├── habit_model.dart                    ← Phase 2 (contains StreakModel too)
+    │   │   ├── mood_model.dart                     ← Phase 5
+    │   │   └── app_usage_model.dart                ← Phase 5
+    │   │
+    │   ├── repositories\
+    │   │   ├── task_repository.dart                ← Phase 2
+    │   │   ├── diary_repository.dart               ← Phase 2
+    │   │   ├── habit_repository.dart               ← Phase 2
+    │   │   ├── consistency_repository.dart         ← Phase 2
+    │   │   └── mood_repository.dart                ← Phase 5
+    │   │
+    │   └── services\
+    │       ├── notification_service.dart           ← Phase 2 (updated Phase 4)
+    │       ├── notification_scheduler.dart         ← Phase 6
+    │       ├── app_usage_service.dart              ← Phase 5
+    │       └── export_service.dart                 ← Phase 6
+    │
+    ├── providers\
+    │   ├── database_provider.dart                  ← Phase 1
+    │   ├── settings_provider.dart                  ← Phase 6 version (all appended)
+    │   ├── repository_providers.dart               ← Phase 5 version
+    │   ├── task_provider.dart                      ← Phase 2
+    │   ├── diary_provider.dart                     ← Phase 2
+    │   ├── habit_provider.dart                     ← Phase 2
+    │   ├── mood_provider.dart                      ← Phase 5
+    │   └── consistency_provider.dart               ← Phase 5 version
+    │
+    └── features\
+        │
+        ├── main_screen.dart                        ← Phase 4 version
+        │
+        ├── onboarding\
+        │   └── onboarding_screen.dart              ← Phase 6
+        │
+        ├── home\
+        │   ├── home_screen.dart                    ← Phase 5 version (MoodCard added)
+        │   └── widgets\
+        │       └── mood_card.dart                  ← Phase 5
+        │
+        ├── todo\
+        │   ├── todo_screen.dart                    ← Phase 4 version
+        │   └── widgets\                            ← Empty (widgets inline in screen)
+        │
+        ├── diary\
+        │   ├── diary_screen.dart                   ← Phase 4 version
+        │   └── widgets\
+        │       └── diary_page_transition.dart      ← Phase 4
+        │
+        ├── consistency\
+        │   ├── consistency_screen.dart             ← Phase 5 version
+        │   └── widgets\
+        │       ├── range_switcher.dart             ← Phase 5
+        │       ├── usage_list_card.dart            ← Phase 5
+        │       └── mood_correlation_card.dart      ← Phase 5
+        │
+        ├── settings\
+        │   ├── settings_screen.dart                ← Phase 6 version
+        │   └── widgets\
+        │       ├── notification_bottom_sheet.dart  ← Phase 6
+        │       ├── language_bottom_sheet.dart      ← Phase 6
+        │       └── export_bottom_sheet.dart        ← Phase 6
+        │
+        └── shared\
+            └── widgets\
+                ├── bento_card.dart                 ← Phase 3
+                └── circular_ring.dart              ← Phase 3
+```
+
+
+
+### Step 4 — Files That Have Multiple Versions (Use the Latest)
+
+These files were updated across phases. Always use the **latest version** listed:
+
+| File | Use Version From |
+|---|---|
+| `main.dart` | Phase 6 |
+| `app.dart` | Phase 6 |
+| `app_database.dart` | Phase 5 (schema v4) |
+| `settings_provider.dart` | Phase 6 (all content appended) |
+| `repository_providers.dart` | Phase 5 (clean rewrite) |
+| `consistency_provider.dart` | Phase 5 (clean rewrite) |
+| `diary_screen.dart` | Phase 4 (full rewrite) |
+| `todo_screen.dart` | Phase 4 (full rewrite) |
+| `settings_screen.dart` | Phase 6 (fully wired) |
+| `home_screen.dart` | Phase 5 (MoodCard injected) |
+| `main_screen.dart` | Phase 4 (last-tab persistence) |
+| `MainActivity.kt` | Phase 5 (FlutterFragmentActivity) |
+| `UsageStatsPlugin.kt` | Phase 5 (full implementation) |
+| `AndroidManifest.xml` | Phase 5 (biometric + usage permissions) |
+| `pubspec.yaml` | Phase 6 (all dependencies) |
+| `notification_service.dart` | Phase 4 (scheduling methods added) |
+
