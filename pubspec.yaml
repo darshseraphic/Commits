@@ -1,0 +1,125 @@
+name: asrio
+description: ASRIO — A personal productivity companion. All data stays on device.
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.3.0 <4.0.0'
+  flutter: '>=3.22.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+
+  # ── State Management ───────────────────────────────────────────────────────
+  flutter_riverpod: ^2.5.1
+
+  # ── Navigation ─────────────────────────────────────────────────────────────
+  go_router: ^14.2.0
+
+  # ── Local Database ──────────────────────────────────────────────────────────
+  drift: ^2.18.0
+  sqlite3_flutter_libs: ^0.5.24
+  path_provider: ^2.1.4
+  path: ^1.9.0
+
+  # ── Secure Storage ─────────────────────────────────────────────────────────
+  flutter_secure_storage: ^9.2.2
+
+  # ── Biometrics ─────────────────────────────────────────────────────────────
+  local_auth: ^2.3.0
+
+  # ── Preferences ────────────────────────────────────────────────────────────
+  shared_preferences: ^2.3.2
+
+  # ── Notifications ──────────────────────────────────────────────────────────
+  flutter_local_notifications: ^17.2.3
+
+  # ── Timezone (required by flutter_local_notifications zonedSchedule) ───────
+  timezone: ^0.9.4
+
+  # ── Encryption ─────────────────────────────────────────────────────────────
+  encrypt: ^5.0.3
+  pointycastle: ^3.9.1
+
+  # ── Rich Text Editor ───────────────────────────────────────────────────────
+  flutter_quill: ^11.5.1
+
+  # ── Charts ─────────────────────────────────────────────────────────────────
+  fl_chart: ^0.69.0
+
+  # ── Animations ─────────────────────────────────────────────────────────────
+  lottie: ^3.1.2
+
+  # ── Export / Share ─────────────────────────────────────────────────────────
+  share_plus: ^10.0.0           # Opens Android share sheet for export files.
+
+  # ── Utilities ──────────────────────────────────────────────────────────────
+  intl: ^0.20.0
+  uuid: ^4.4.2
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0
+  build_runner: ^2.4.11
+  drift_dev: ^2.18.0
+
+  # ── Asset Generators ───────────────────────────────────────────────────────
+  flutter_native_splash: ^2.4.0     # Generates native Android splash screen.
+  flutter_launcher_icons: ^0.14.0   # Generates all launcher icon sizes.
+
+# ── Native Splash Configuration ───────────────────────────────────────────────
+#
+# Run: dart run flutter_native_splash:create
+# This generates android/app/src/main/res/drawable/launch_background.xml
+#
+flutter_native_splash:
+  color: "#FFFFFF"                        # White background.
+  image: assets/Asrio.png                 # Centered logo — place file here first.
+  color_dark: "#000000"                   # Black background in dark mode.
+  image_dark: assets/Asrio.png            # Same logo — inverts naturally on dark bg.
+  android_12:
+    color: "#FFFFFF"
+    image: assets/Asrio.png
+    icon_background_color: "#FFFFFF"
+    color_dark: "#000000"
+    image_dark: assets/Asrio.png
+    icon_background_color_dark: "#000000"
+  fullscreen: false                       # Do not hide status bar.
+  android: true
+  ios: false                              # iOS not targeted.
+  web: false
+
+# ── Launcher Icon Configuration ────────────────────────────────────────────────
+#
+# Run: dart run flutter_launcher_icons
+# This generates mipmap-* folders inside android/app/src/main/res/
+#
+flutter_launcher_icons:
+  android: true
+  ios: false
+  image_path: "assets/Asrio.png"
+  adaptive_icon_background: "#FFFFFF"     # White background for adaptive icons.
+  adaptive_icon_foreground: "assets/Asrio.png"
+  min_sdk_android: 21
+
+flutter:
+  uses-material-design: true
+
+  fonts:
+    - family: DM Sans
+      fonts:
+        - asset: assets/fonts/DMSans-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/DMSans-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/DMSans-SemiBold.ttf
+          weight: 600
+
+  assets:
+    - assets/                   # Root assets folder — Asrio.png, Asriofreeze.png
+    - assets/fonts/
+    - assets/animations/

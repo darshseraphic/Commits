@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  AndroidManifest.xml — ASRIO
+  ═══════════════════════════════════════════════════════════════════════════════
+  SECURITY SETTINGS:
+    android:allowBackup="false"   → Prevents diary data from being uploaded to
+                                    Google Drive Auto-Backup. AES keys stored in
+                                    flutter_secure_storage would be backed up
+                                    separately but the DB would travel without them,
+                                    so disabling backup is the cleaner choice.
+
+    android:fullBackupContent     → Explicitly excludes the DB file from any
+    (see backup_rules.xml)          backup mechanism as a belt-and-suspenders measure.
+
+  NOTE ON PACKAGE_USAGE_STATS:
+    This permission cannot be granted at runtime via the normal permission dialog.
+    The user must manually navigate to Settings → Special App Access → Usage Access.
+    We must check UsageStatsManager availability on every stats read and degrade
+    gracefully (show empty state) rather than crash or block the UI.
+  ═══════════════════════════════════════════════════════════════════════════════
+-->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.darshvici.asrio">
+
+    <!-- ── Permissions ────────────────────────────────────────────────────── -->
+
+    <!-- Required: Query app usage statistics for the Consistency tab. -->
+    <!-- NOT a runtime permission — user must grant via Settings manually. -->
+    <uses-permission android:name="android.permission.PACKAGE_USAGE_STATS"
+        tools:ignore="ProtectedPermissions" />
+
+    <!-- Required: Post notifications on Android 13+ (API 33+). -->
+    <!-- Requested at runtime via permission_handler in Phase 3. -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
+    <!-- Required: Reschedule notifications after device reboot. -->
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+
+    <!-- Required: Schedule exact-time notifications (diary/task reminders). -->
+    <!-- On Android 12+ (API 31+), we check canScheduleExactAlarms() first. -->
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
+    <!-- Fallback permission for Android 13+ if SCHEDULE_EXACT_ALARM is denied. -->
+    <uses-permission android:name="android.permission.USE_EXACT_ALARM" />
+
+    <!-- Required: Keep the CPU awake briefly when a scheduled alarm fires. -->
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+
+    <!-- ── Biometrics ──────────────────────────────────────────────────────── -->
+    <!-- Required for the optional Diary Lock feature (local_auth). -->
+    <uses-permission android:name="android.permission.USE_BIOMETRIC" />
+    <uses-permission android:name="android.permission.USE_FINGERPRINT" />
+
+    <!-- ── Internet (explicitly excluded) ───────────────────────────────── -->
+    <!-- ASRIO is local-first. No network permission = no accidental data leak. -->
+    <!-- android.permission.INTERNET is intentionally ABSENT from this file. -->
+
+    <!-- ── Application ───────────────────────────────────────────────────── -->
+    <application
+        android:name="${applicationName}"
+        android:label="ASRIO"
+        android:icon="@mipmap/ic_launcher"
+        android:roundIcon="@mipmap/ic_launcher_round"
+
+        android:allowBackup="false"
+        android:fullBackupContent="@xml/backup_rules"
+
+        android:supportsRtl="true"
+        android:localeConfig="@xml/locales_config"
+        android:theme="@style/LaunchTheme"
+        android:enableOnBackInvokedCallback="true"
+        android:exported="false">
+
+        <!-- ── Main Activity ─────────────────────────────────────────────── -->
+        <activity
+            android:name=".MainActivity"
+            android:exported="true"
+            android:launchMode="singleTop"
+            android:theme="@style/LaunchTheme"
+            android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode"
+            android:hardwareAccelerated="true"
+            android:windowSoftInputMode="adjustResize">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <!-- ── Boot Completed Receiver ────────────────────────────────────── -->
+        <!-- Reschedules notifications after the device reboots.              -->
+        <!-- Implemented in Phase 3 (Settings & Notifications).               -->
+        <receiver
+            android:name="com.dexterous.flutterlocalnotifications.ScheduledNotificationBootReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+            </intent-filter>
+        </receiver>
+
+        <!-- ── Alarm Receiver ─────────────────────────────────────────────── -->
+        <!-- Fires the actual notification when a scheduled alarm triggers.   -->
+        <receiver
+            android:name="com.dexterous.flutterlocalnotifications.ScheduledNotificationReceiver"
+            android:exported="false" />
+
+        <!-- ── Usage Stats Platform Channel ─────────────────────────────── -->
+        <!-- The UsageStatsPlugin.kt will handle this channel in Phase 5.    -->
+        <!-- No additional manifest entry needed — registered in MainActivity. -->
+
+    </application>
+
+</manifest>
