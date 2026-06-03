@@ -1834,3 +1834,102 @@ These files were updated across phases. Always use the **latest version** listed
 | `pubspec.yaml` | Phase 6 (all dependencies) |
 | `notification_service.dart` | Phase 4 (scheduling methods added) |
 
+## Phase 8 :- UI Fix and Backend fix
+
+So After build has been succeed, There are too many UI fixes that i need to resolve before, uploaded
+the beta update. So the errors are been listed down, and can be fix within 5-10 business days. If anyone
+need the unstable or broke version to see the before to compare with future application they can contact me,
+by email:- darsh.seraphic@gmail.com or linkdin:- https://www.linkldin.com/darshseraphic/.
+
+### @Here is the list of error in UI and UX (review by myself):-
+
+**During APK build, these errors were raised:-**
+```
+PS C:\Users\Darshvici\StudioProjects\Asrio> flutter build apk --debug
+Build failed due to use of deleted Android v1 embedding.
+PS C:\Users\Darshvici\StudioProjects\Asrio> flutter build apk --release --split-per-abi
+Build failed due to use of deleted Android v1 embedding.
+```
+
+### The *flutter run -d windows* excutes and I review and analysis the app UI/UX, So now let me described it for you,.
+
+1. Greeting text was touching to the top of the notch of phone or doesn't contain clean spacing with the top.
+2. Decide to Remove the profile icon at corner of the home screen, and make the Greeting text centered instead.
+3. After I go to statistic, whole app failed and give all pages errors.
+4. after I end the app task, and run Flutter run -d windows again the app rise this error:-
+
+```
+PS C:\Users\Darshvici\StudioProjects\Asrio> flutter run -d windows
+Resolving dependencies...
+Downloading packages...
+ClientException with SocketException: Failed host lookup: 'pub.dev' (OS Error: No such host is known, error = 11001), uri=https://pub.dev/api/packages/archive/advisories
+Failed to update packages.
+```
+
+### I check the internet, and it start working again. My phone battery dies, that why the app build failed. :(
+
+5. The mood, Like when i try to select the mood, it take the app to restart to store the mood entry.
+6. Our app is minimal, there shouldn't be a single emoji. After Removing the icons It will graudaully make the app premium and clean.
+7. The daily progress circle is not clean and minimal, I will fix this my reducing height and weidth of card. Same to "todays" card.
+8. App is not collecting data, like mood, task entry, to-do check list, etc
+9. I build the app to have the navigation bar with 5 tabs, home (home icon), To-Do (check mark icon), statistics (clean icon of histogram), settings (setting icon not random button icon).
+10. All home cards are not align or adjust properly, look like uneven spacing.
+11. When I swap the app from 1 tab to another its not smooth scroll,I need to make it smooth like instagram smooth scroll,
+12. Also i notice thatdon't the app ugly because i focus reducing app storage or short codes, i think i should focus on UI and backend so currently the app is of 40 mb, 
+13. after this extra line will be added and make the app run smooth. I think adding animation will make the app smooth but increase the size of the app,
+14. it will be then reduce from 95% of phone access to 90%, phone need atleast of 30 fps, 24fps eventually crash or the play store and app store won't suggest it to those phone.
+12. In diary,I will remove the 0 "entry text", only "diary" text should be there. Clean and no extra dopamine.
+13. the Pencil icon is at right corner is not working when i click it, even the diary is not create,i need fix it.
+14. Removing the extra sentence of "tap the pencil to write your first entry".
+15. The consistency card is too big, i will make it clean and minimal.
+16. In the activity, the histogram look like designed by child, but you are professional minimal app builder, fix it.
+17. Mood & Output is not showing the mood data, also I will make the mood with faces like for happy smile, good light slime, normal straight face, not good sightly off, sad sad face.
+18. the month card days should be circular instead of square.
+19. Remove the extra text in consistency that says as "your  performance report".
+20. In settings remove the extra text of "your control center", we will cover all these extra texts in marketing.
+21. Theme is not working, Haptics feedback is not working.
+22. Set timer is not working, its not showing the time selector.
+23. notification is not working.
+24. languages is not translating all the text in all tabs and throughout the app.
+25. Wipe data does remove the mood, diary, to-do and consistency data. And not resets the app.
+26. Fix the overflow error:-
+
+```
+The overflowing RenderFlex has an orientation of Axis.horizontal.
+The edge of the RenderFlex that is overflowing has been marked in the rendering with a yellow and
+black striped pattern. This is usually caused by the contents being too big for the RenderFlex.
+Consider applying a flex factor (e.g. using an Expanded widget) to force the children of the
+RenderFlex to fit within the available space instead of being sized to their natural size.
+This is considered an error condition because it indicates that there is content that cannot be
+seen. If the content is legitimately bigger than the available space, consider clipping it with a
+ClipRect widget before putting it in the flex, or using a scrollable container rather than a Flex,
+like a ListView.
+The specific RenderFlex in question is: RenderFlex#ad495 relayoutBoundary=up15 OVERFLOWING:
+creator: Row ← Padding ← _LoggedState ← _AnimatedSize ← AnimatedSize ← ClipRRect ← Padding ←
+DecoratedBox ← Container ← Listener ← RawGestureDetector ← GestureDetector ← ⋯
+parentData: offset=Offset(20.0, 16.0) (can use size)
+constraints: BoxConstraints(w=56.0, 0.0<=h<=Infinity)
+size: Size(56.0, 384.0)
+direction: horizontal
+mainAxisAlignment: start
+mainAxisSize: max
+crossAxisAlignment: center
+textDirection: ltr
+verticalDirection: down
+spacing: 0.0
+◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤
+════════════════════════════════════════════════════════════════════════════════════════════════════
+Another exception was thrown: A RenderFlex overflowed by 69 pixels on the right.
+Another exception was thrown: A RenderFlex overflowed by 24 pixels on the right.
+Another exception was thrown: A RenderFlex overflowed by 102 pixels on the right.
+Another exception was thrown: A RenderFlex overflowed by 12 pixels on the right.
+Another exception was thrown: A RenderFlex overflowed by 50 pixels on the right.
+[AppUsageService] hasPermission error: MissingPluginException(No implementation found for method hasUsagePermission on channel com.darshvici.asrio/usage_stats)
+Another exception was thrown: A RenderFlex overflowed by 50 pixels on the right.
+Another exception was thrown: A RenderFlex overflowed by 50 pixels on the right.
+Another exception was thrown: A RenderFlex overflowed by 50 pixels on the right.
+Another exception was thrown: A RenderFlex overflowed by 50 pixels on the right.
+Another exception was thrown: A RenderFlex overflowed by 50 pixels on the right.
+Another exception was thrown: A RenderFlex overflowed by 50 pixels on the right.
+Another exception was thrown: A RenderFlex overflowed by 50 pixels on the right.
+```
