@@ -40,6 +40,14 @@ class $TasksTable extends Tasks with TableInfo<$TasksTable, Task> {
       type: DriftSqlType.string,
       requiredDuringInsert: false,
       defaultValue: const Constant('daily'));
+  static const VerificationMeta _priorityMeta =
+      const VerificationMeta('priority');
+  @override
+  late final GeneratedColumn<String> priority = GeneratedColumn<String>(
+      'priority', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: false,
+      defaultValue: const Constant('none'));
   static const VerificationMeta _isCompletedMeta =
       const VerificationMeta('isCompleted');
   @override
@@ -78,26 +86,18 @@ class $TasksTable extends Tasks with TableInfo<$TasksTable, Task> {
   late final GeneratedColumn<int> notificationId = GeneratedColumn<int>(
       'notification_id', aliasedName, true,
       type: DriftSqlType.int, requiredDuringInsert: false);
-  static const VerificationMeta _priorityMeta =
-      const VerificationMeta('priority');
-  @override
-  late final GeneratedColumn<String> priority = GeneratedColumn<String>(
-      'priority', aliasedName, false,
-      type: DriftSqlType.string,
-      requiredDuringInsert: false,
-      defaultValue: const Constant('low'));
   @override
   List<GeneratedColumn> get $columns => [
         id,
         title,
         description,
         type,
+        priority,
         isCompleted,
         createdAt,
         dueDate,
         sortOrder,
-        notificationId,
-        priority
+        notificationId
       ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -128,6 +128,10 @@ class $TasksTable extends Tasks with TableInfo<$TasksTable, Task> {
       context.handle(
           _typeMeta, type.isAcceptableOrUnknown(data['type']!, _typeMeta));
     }
+    if (data.containsKey('priority')) {
+      context.handle(_priorityMeta,
+          priority.isAcceptableOrUnknown(data['priority']!, _priorityMeta));
+    }
     if (data.containsKey('is_completed')) {
       context.handle(
           _isCompletedMeta,
@@ -152,10 +156,6 @@ class $TasksTable extends Tasks with TableInfo<$TasksTable, Task> {
           notificationId.isAcceptableOrUnknown(
               data['notification_id']!, _notificationIdMeta));
     }
-    if (data.containsKey('priority')) {
-      context.handle(_priorityMeta,
-          priority.isAcceptableOrUnknown(data['priority']!, _priorityMeta));
-    }
     return context;
   }
 
@@ -173,6 +173,8 @@ class $TasksTable extends Tasks with TableInfo<$TasksTable, Task> {
           .read(DriftSqlType.string, data['${effectivePrefix}description'])!,
       type: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}type'])!,
+      priority: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}priority'])!,
       isCompleted: attachedDatabase.typeMapping
           .read(DriftSqlType.bool, data['${effectivePrefix}is_completed'])!,
       createdAt: attachedDatabase.typeMapping
@@ -183,8 +185,6 @@ class $TasksTable extends Tasks with TableInfo<$TasksTable, Task> {
           .read(DriftSqlType.int, data['${effectivePrefix}sort_order'])!,
       notificationId: attachedDatabase.typeMapping
           .read(DriftSqlType.int, data['${effectivePrefix}notification_id']),
-      priority: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}priority'])!,
     );
   }
 
@@ -199,23 +199,23 @@ class Task extends DataClass implements Insertable<Task> {
   final String title;
   final String description;
   final String type;
+  final String priority;
   final bool isCompleted;
   final DateTime createdAt;
   final DateTime? dueDate;
   final int sortOrder;
   final int? notificationId;
-  final String priority;
   const Task(
       {required this.id,
       required this.title,
       required this.description,
       required this.type,
+      required this.priority,
       required this.isCompleted,
       required this.createdAt,
       this.dueDate,
       required this.sortOrder,
-      this.notificationId,
-      required this.priority});
+      this.notificationId});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -223,6 +223,7 @@ class Task extends DataClass implements Insertable<Task> {
     map['title'] = Variable<String>(title);
     map['description'] = Variable<String>(description);
     map['type'] = Variable<String>(type);
+    map['priority'] = Variable<String>(priority);
     map['is_completed'] = Variable<bool>(isCompleted);
     map['created_at'] = Variable<DateTime>(createdAt);
     if (!nullToAbsent || dueDate != null) {
@@ -232,7 +233,6 @@ class Task extends DataClass implements Insertable<Task> {
     if (!nullToAbsent || notificationId != null) {
       map['notification_id'] = Variable<int>(notificationId);
     }
-    map['priority'] = Variable<String>(priority);
     return map;
   }
 
@@ -242,6 +242,7 @@ class Task extends DataClass implements Insertable<Task> {
       title: Value(title),
       description: Value(description),
       type: Value(type),
+      priority: Value(priority),
       isCompleted: Value(isCompleted),
       createdAt: Value(createdAt),
       dueDate: dueDate == null && nullToAbsent
@@ -251,7 +252,6 @@ class Task extends DataClass implements Insertable<Task> {
       notificationId: notificationId == null && nullToAbsent
           ? const Value.absent()
           : Value(notificationId),
-      priority: Value(priority),
     );
   }
 
@@ -263,12 +263,12 @@ class Task extends DataClass implements Insertable<Task> {
       title: serializer.fromJson<String>(json['title']),
       description: serializer.fromJson<String>(json['description']),
       type: serializer.fromJson<String>(json['type']),
+      priority: serializer.fromJson<String>(json['priority']),
       isCompleted: serializer.fromJson<bool>(json['isCompleted']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       dueDate: serializer.fromJson<DateTime?>(json['dueDate']),
       sortOrder: serializer.fromJson<int>(json['sortOrder']),
       notificationId: serializer.fromJson<int?>(json['notificationId']),
-      priority: serializer.fromJson<String>(json['priority']),
     );
   }
   @override
@@ -279,12 +279,12 @@ class Task extends DataClass implements Insertable<Task> {
       'title': serializer.toJson<String>(title),
       'description': serializer.toJson<String>(description),
       'type': serializer.toJson<String>(type),
+      'priority': serializer.toJson<String>(priority),
       'isCompleted': serializer.toJson<bool>(isCompleted),
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'dueDate': serializer.toJson<DateTime?>(dueDate),
       'sortOrder': serializer.toJson<int>(sortOrder),
       'notificationId': serializer.toJson<int?>(notificationId),
-      'priority': serializer.toJson<String>(priority),
     };
   }
 
@@ -293,24 +293,24 @@ class Task extends DataClass implements Insertable<Task> {
           String? title,
           String? description,
           String? type,
+          String? priority,
           bool? isCompleted,
           DateTime? createdAt,
           Value<DateTime?> dueDate = const Value.absent(),
           int? sortOrder,
-          Value<int?> notificationId = const Value.absent(),
-          String? priority}) =>
+          Value<int?> notificationId = const Value.absent()}) =>
       Task(
         id: id ?? this.id,
         title: title ?? this.title,
         description: description ?? this.description,
         type: type ?? this.type,
+        priority: priority ?? this.priority,
         isCompleted: isCompleted ?? this.isCompleted,
         createdAt: createdAt ?? this.createdAt,
         dueDate: dueDate.present ? dueDate.value : this.dueDate,
         sortOrder: sortOrder ?? this.sortOrder,
         notificationId:
             notificationId.present ? notificationId.value : this.notificationId,
-        priority: priority ?? this.priority,
       );
   Task copyWithCompanion(TasksCompanion data) {
     return Task(
@@ -319,6 +319,7 @@ class Task extends DataClass implements Insertable<Task> {
       description:
           data.description.present ? data.description.value : this.description,
       type: data.type.present ? data.type.value : this.type,
+      priority: data.priority.present ? data.priority.value : this.priority,
       isCompleted:
           data.isCompleted.present ? data.isCompleted.value : this.isCompleted,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
@@ -327,7 +328,6 @@ class Task extends DataClass implements Insertable<Task> {
       notificationId: data.notificationId.present
           ? data.notificationId.value
           : this.notificationId,
-      priority: data.priority.present ? data.priority.value : this.priority,
     );
   }
 
@@ -338,19 +338,19 @@ class Task extends DataClass implements Insertable<Task> {
           ..write('title: $title, ')
           ..write('description: $description, ')
           ..write('type: $type, ')
+          ..write('priority: $priority, ')
           ..write('isCompleted: $isCompleted, ')
           ..write('createdAt: $createdAt, ')
           ..write('dueDate: $dueDate, ')
           ..write('sortOrder: $sortOrder, ')
-          ..write('notificationId: $notificationId, ')
-          ..write('priority: $priority')
+          ..write('notificationId: $notificationId')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(id, title, description, type, isCompleted,
-      createdAt, dueDate, sortOrder, notificationId, priority);
+  int get hashCode => Object.hash(id, title, description, type, priority,
+      isCompleted, createdAt, dueDate, sortOrder, notificationId);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -359,12 +359,12 @@ class Task extends DataClass implements Insertable<Task> {
           other.title == this.title &&
           other.description == this.description &&
           other.type == this.type &&
+          other.priority == this.priority &&
           other.isCompleted == this.isCompleted &&
           other.createdAt == this.createdAt &&
           other.dueDate == this.dueDate &&
           other.sortOrder == this.sortOrder &&
-          other.notificationId == this.notificationId &&
-          other.priority == this.priority);
+          other.notificationId == this.notificationId);
 }
 
 class TasksCompanion extends UpdateCompanion<Task> {
@@ -372,59 +372,59 @@ class TasksCompanion extends UpdateCompanion<Task> {
   final Value<String> title;
   final Value<String> description;
   final Value<String> type;
+  final Value<String> priority;
   final Value<bool> isCompleted;
   final Value<DateTime> createdAt;
   final Value<DateTime?> dueDate;
   final Value<int> sortOrder;
   final Value<int?> notificationId;
-  final Value<String> priority;
   const TasksCompanion({
     this.id = const Value.absent(),
     this.title = const Value.absent(),
     this.description = const Value.absent(),
     this.type = const Value.absent(),
+    this.priority = const Value.absent(),
     this.isCompleted = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.dueDate = const Value.absent(),
     this.sortOrder = const Value.absent(),
     this.notificationId = const Value.absent(),
-    this.priority = const Value.absent(),
   });
   TasksCompanion.insert({
     this.id = const Value.absent(),
     required String title,
     this.description = const Value.absent(),
     this.type = const Value.absent(),
+    this.priority = const Value.absent(),
     this.isCompleted = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.dueDate = const Value.absent(),
     this.sortOrder = const Value.absent(),
     this.notificationId = const Value.absent(),
-    this.priority = const Value.absent(),
   }) : title = Value(title);
   static Insertable<Task> custom({
     Expression<int>? id,
     Expression<String>? title,
     Expression<String>? description,
     Expression<String>? type,
+    Expression<String>? priority,
     Expression<bool>? isCompleted,
     Expression<DateTime>? createdAt,
     Expression<DateTime>? dueDate,
     Expression<int>? sortOrder,
     Expression<int>? notificationId,
-    Expression<String>? priority,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
       if (title != null) 'title': title,
       if (description != null) 'description': description,
       if (type != null) 'type': type,
+      if (priority != null) 'priority': priority,
       if (isCompleted != null) 'is_completed': isCompleted,
       if (createdAt != null) 'created_at': createdAt,
       if (dueDate != null) 'due_date': dueDate,
       if (sortOrder != null) 'sort_order': sortOrder,
       if (notificationId != null) 'notification_id': notificationId,
-      if (priority != null) 'priority': priority,
     });
   }
 
@@ -433,23 +433,23 @@ class TasksCompanion extends UpdateCompanion<Task> {
       Value<String>? title,
       Value<String>? description,
       Value<String>? type,
+      Value<String>? priority,
       Value<bool>? isCompleted,
       Value<DateTime>? createdAt,
       Value<DateTime?>? dueDate,
       Value<int>? sortOrder,
-      Value<int?>? notificationId,
-      Value<String>? priority}) {
+      Value<int?>? notificationId}) {
     return TasksCompanion(
       id: id ?? this.id,
       title: title ?? this.title,
       description: description ?? this.description,
       type: type ?? this.type,
+      priority: priority ?? this.priority,
       isCompleted: isCompleted ?? this.isCompleted,
       createdAt: createdAt ?? this.createdAt,
       dueDate: dueDate ?? this.dueDate,
       sortOrder: sortOrder ?? this.sortOrder,
       notificationId: notificationId ?? this.notificationId,
-      priority: priority ?? this.priority,
     );
   }
 
@@ -468,6 +468,9 @@ class TasksCompanion extends UpdateCompanion<Task> {
     if (type.present) {
       map['type'] = Variable<String>(type.value);
     }
+    if (priority.present) {
+      map['priority'] = Variable<String>(priority.value);
+    }
     if (isCompleted.present) {
       map['is_completed'] = Variable<bool>(isCompleted.value);
     }
@@ -483,9 +486,6 @@ class TasksCompanion extends UpdateCompanion<Task> {
     if (notificationId.present) {
       map['notification_id'] = Variable<int>(notificationId.value);
     }
-    if (priority.present) {
-      map['priority'] = Variable<String>(priority.value);
-    }
     return map;
   }
 
@@ -496,12 +496,12 @@ class TasksCompanion extends UpdateCompanion<Task> {
           ..write('title: $title, ')
           ..write('description: $description, ')
           ..write('type: $type, ')
+          ..write('priority: $priority, ')
           ..write('isCompleted: $isCompleted, ')
           ..write('createdAt: $createdAt, ')
           ..write('dueDate: $dueDate, ')
           ..write('sortOrder: $sortOrder, ')
-          ..write('notificationId: $notificationId, ')
-          ..write('priority: $priority')
+          ..write('notificationId: $notificationId')
           ..write(')'))
         .toString();
   }
@@ -1426,18 +1426,12 @@ class $MoodLogsTable extends MoodLogs with TableInfo<$MoodLogsTable, MoodLog> {
       requiredDuringInsert: false,
       defaultConstraints:
           GeneratedColumn.constraintIsAlways('PRIMARY KEY AUTOINCREMENT'));
-  static const VerificationMeta _ratingMeta = const VerificationMeta('rating');
+  static const VerificationMeta _moodValueMeta =
+      const VerificationMeta('moodValue');
   @override
-  late final GeneratedColumn<int> rating = GeneratedColumn<int>(
-      'rating', aliasedName, false,
+  late final GeneratedColumn<int> moodValue = GeneratedColumn<int>(
+      'mood_value', aliasedName, false,
       type: DriftSqlType.int, requiredDuringInsert: true);
-  static const VerificationMeta _noteMeta = const VerificationMeta('note');
-  @override
-  late final GeneratedColumn<String> note = GeneratedColumn<String>(
-      'note', aliasedName, false,
-      type: DriftSqlType.string,
-      requiredDuringInsert: false,
-      defaultValue: const Constant(''));
   static const VerificationMeta _loggedAtMeta =
       const VerificationMeta('loggedAt');
   @override
@@ -1447,7 +1441,7 @@ class $MoodLogsTable extends MoodLogs with TableInfo<$MoodLogsTable, MoodLog> {
       requiredDuringInsert: false,
       defaultValue: currentDateAndTime);
   @override
-  List<GeneratedColumn> get $columns => [id, rating, note, loggedAt];
+  List<GeneratedColumn> get $columns => [id, moodValue, loggedAt];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -1461,15 +1455,11 @@ class $MoodLogsTable extends MoodLogs with TableInfo<$MoodLogsTable, MoodLog> {
     if (data.containsKey('id')) {
       context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
     }
-    if (data.containsKey('rating')) {
-      context.handle(_ratingMeta,
-          rating.isAcceptableOrUnknown(data['rating']!, _ratingMeta));
+    if (data.containsKey('mood_value')) {
+      context.handle(_moodValueMeta,
+          moodValue.isAcceptableOrUnknown(data['mood_value']!, _moodValueMeta));
     } else if (isInserting) {
-      context.missing(_ratingMeta);
-    }
-    if (data.containsKey('note')) {
-      context.handle(
-          _noteMeta, note.isAcceptableOrUnknown(data['note']!, _noteMeta));
+      context.missing(_moodValueMeta);
     }
     if (data.containsKey('logged_at')) {
       context.handle(_loggedAtMeta,
@@ -1481,15 +1471,17 @@ class $MoodLogsTable extends MoodLogs with TableInfo<$MoodLogsTable, MoodLog> {
   @override
   Set<GeneratedColumn> get $primaryKey => {id};
   @override
+  List<Set<GeneratedColumn>> get uniqueKeys => [
+        {loggedAt},
+      ];
+  @override
   MoodLog map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
     return MoodLog(
       id: attachedDatabase.typeMapping
           .read(DriftSqlType.int, data['${effectivePrefix}id'])!,
-      rating: attachedDatabase.typeMapping
-          .read(DriftSqlType.int, data['${effectivePrefix}rating'])!,
-      note: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}note'])!,
+      moodValue: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}mood_value'])!,
       loggedAt: attachedDatabase.typeMapping
           .read(DriftSqlType.dateTime, data['${effectivePrefix}logged_at'])!,
     );
@@ -1503,20 +1495,15 @@ class $MoodLogsTable extends MoodLogs with TableInfo<$MoodLogsTable, MoodLog> {
 
 class MoodLog extends DataClass implements Insertable<MoodLog> {
   final int id;
-  final int rating;
-  final String note;
+  final int moodValue;
   final DateTime loggedAt;
   const MoodLog(
-      {required this.id,
-      required this.rating,
-      required this.note,
-      required this.loggedAt});
+      {required this.id, required this.moodValue, required this.loggedAt});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     map['id'] = Variable<int>(id);
-    map['rating'] = Variable<int>(rating);
-    map['note'] = Variable<String>(note);
+    map['mood_value'] = Variable<int>(moodValue);
     map['logged_at'] = Variable<DateTime>(loggedAt);
     return map;
   }
@@ -1524,8 +1511,7 @@ class MoodLog extends DataClass implements Insertable<MoodLog> {
   MoodLogsCompanion toCompanion(bool nullToAbsent) {
     return MoodLogsCompanion(
       id: Value(id),
-      rating: Value(rating),
-      note: Value(note),
+      moodValue: Value(moodValue),
       loggedAt: Value(loggedAt),
     );
   }
@@ -1535,8 +1521,7 @@ class MoodLog extends DataClass implements Insertable<MoodLog> {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return MoodLog(
       id: serializer.fromJson<int>(json['id']),
-      rating: serializer.fromJson<int>(json['rating']),
-      note: serializer.fromJson<String>(json['note']),
+      moodValue: serializer.fromJson<int>(json['moodValue']),
       loggedAt: serializer.fromJson<DateTime>(json['loggedAt']),
     );
   }
@@ -1545,24 +1530,20 @@ class MoodLog extends DataClass implements Insertable<MoodLog> {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
       'id': serializer.toJson<int>(id),
-      'rating': serializer.toJson<int>(rating),
-      'note': serializer.toJson<String>(note),
+      'moodValue': serializer.toJson<int>(moodValue),
       'loggedAt': serializer.toJson<DateTime>(loggedAt),
     };
   }
 
-  MoodLog copyWith({int? id, int? rating, String? note, DateTime? loggedAt}) =>
-      MoodLog(
+  MoodLog copyWith({int? id, int? moodValue, DateTime? loggedAt}) => MoodLog(
         id: id ?? this.id,
-        rating: rating ?? this.rating,
-        note: note ?? this.note,
+        moodValue: moodValue ?? this.moodValue,
         loggedAt: loggedAt ?? this.loggedAt,
       );
   MoodLog copyWithCompanion(MoodLogsCompanion data) {
     return MoodLog(
       id: data.id.present ? data.id.value : this.id,
-      rating: data.rating.present ? data.rating.value : this.rating,
-      note: data.note.present ? data.note.value : this.note,
+      moodValue: data.moodValue.present ? data.moodValue.value : this.moodValue,
       loggedAt: data.loggedAt.present ? data.loggedAt.value : this.loggedAt,
     );
   }
@@ -1571,65 +1552,54 @@ class MoodLog extends DataClass implements Insertable<MoodLog> {
   String toString() {
     return (StringBuffer('MoodLog(')
           ..write('id: $id, ')
-          ..write('rating: $rating, ')
-          ..write('note: $note, ')
+          ..write('moodValue: $moodValue, ')
           ..write('loggedAt: $loggedAt')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(id, rating, note, loggedAt);
+  int get hashCode => Object.hash(id, moodValue, loggedAt);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is MoodLog &&
           other.id == this.id &&
-          other.rating == this.rating &&
-          other.note == this.note &&
+          other.moodValue == this.moodValue &&
           other.loggedAt == this.loggedAt);
 }
 
 class MoodLogsCompanion extends UpdateCompanion<MoodLog> {
   final Value<int> id;
-  final Value<int> rating;
-  final Value<String> note;
+  final Value<int> moodValue;
   final Value<DateTime> loggedAt;
   const MoodLogsCompanion({
     this.id = const Value.absent(),
-    this.rating = const Value.absent(),
-    this.note = const Value.absent(),
+    this.moodValue = const Value.absent(),
     this.loggedAt = const Value.absent(),
   });
   MoodLogsCompanion.insert({
     this.id = const Value.absent(),
-    required int rating,
-    this.note = const Value.absent(),
+    required int moodValue,
     this.loggedAt = const Value.absent(),
-  }) : rating = Value(rating);
+  }) : moodValue = Value(moodValue);
   static Insertable<MoodLog> custom({
     Expression<int>? id,
-    Expression<int>? rating,
-    Expression<String>? note,
+    Expression<int>? moodValue,
     Expression<DateTime>? loggedAt,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
-      if (rating != null) 'rating': rating,
-      if (note != null) 'note': note,
+      if (moodValue != null) 'mood_value': moodValue,
       if (loggedAt != null) 'logged_at': loggedAt,
     });
   }
 
   MoodLogsCompanion copyWith(
-      {Value<int>? id,
-      Value<int>? rating,
-      Value<String>? note,
-      Value<DateTime>? loggedAt}) {
+      {Value<int>? id, Value<int>? moodValue, Value<DateTime>? loggedAt}) {
     return MoodLogsCompanion(
       id: id ?? this.id,
-      rating: rating ?? this.rating,
-      note: note ?? this.note,
+      moodValue: moodValue ?? this.moodValue,
       loggedAt: loggedAt ?? this.loggedAt,
     );
   }
@@ -1640,11 +1610,8 @@ class MoodLogsCompanion extends UpdateCompanion<MoodLog> {
     if (id.present) {
       map['id'] = Variable<int>(id.value);
     }
-    if (rating.present) {
-      map['rating'] = Variable<int>(rating.value);
-    }
-    if (note.present) {
-      map['note'] = Variable<String>(note.value);
+    if (moodValue.present) {
+      map['mood_value'] = Variable<int>(moodValue.value);
     }
     if (loggedAt.present) {
       map['logged_at'] = Variable<DateTime>(loggedAt.value);
@@ -1656,8 +1623,7 @@ class MoodLogsCompanion extends UpdateCompanion<MoodLog> {
   String toString() {
     return (StringBuffer('MoodLogsCompanion(')
           ..write('id: $id, ')
-          ..write('rating: $rating, ')
-          ..write('note: $note, ')
+          ..write('moodValue: $moodValue, ')
           ..write('loggedAt: $loggedAt')
           ..write(')'))
         .toString();
@@ -1690,24 +1656,24 @@ typedef $$TasksTableCreateCompanionBuilder = TasksCompanion Function({
   required String title,
   Value<String> description,
   Value<String> type,
+  Value<String> priority,
   Value<bool> isCompleted,
   Value<DateTime> createdAt,
   Value<DateTime?> dueDate,
   Value<int> sortOrder,
   Value<int?> notificationId,
-  Value<String> priority,
 });
 typedef $$TasksTableUpdateCompanionBuilder = TasksCompanion Function({
   Value<int> id,
   Value<String> title,
   Value<String> description,
   Value<String> type,
+  Value<String> priority,
   Value<bool> isCompleted,
   Value<DateTime> createdAt,
   Value<DateTime?> dueDate,
   Value<int> sortOrder,
   Value<int?> notificationId,
-  Value<String> priority,
 });
 
 class $$TasksTableFilterComposer extends Composer<_$AppDatabase, $TasksTable> {
@@ -1730,6 +1696,9 @@ class $$TasksTableFilterComposer extends Composer<_$AppDatabase, $TasksTable> {
   ColumnFilters<String> get type => $composableBuilder(
       column: $table.type, builder: (column) => ColumnFilters(column));
 
+  ColumnFilters<String> get priority => $composableBuilder(
+      column: $table.priority, builder: (column) => ColumnFilters(column));
+
   ColumnFilters<bool> get isCompleted => $composableBuilder(
       column: $table.isCompleted, builder: (column) => ColumnFilters(column));
 
@@ -1745,9 +1714,6 @@ class $$TasksTableFilterComposer extends Composer<_$AppDatabase, $TasksTable> {
   ColumnFilters<int> get notificationId => $composableBuilder(
       column: $table.notificationId,
       builder: (column) => ColumnFilters(column));
-
-  ColumnFilters<String> get priority => $composableBuilder(
-      column: $table.priority, builder: (column) => ColumnFilters(column));
 }
 
 class $$TasksTableOrderingComposer
@@ -1771,6 +1737,9 @@ class $$TasksTableOrderingComposer
   ColumnOrderings<String> get type => $composableBuilder(
       column: $table.type, builder: (column) => ColumnOrderings(column));
 
+  ColumnOrderings<String> get priority => $composableBuilder(
+      column: $table.priority, builder: (column) => ColumnOrderings(column));
+
   ColumnOrderings<bool> get isCompleted => $composableBuilder(
       column: $table.isCompleted, builder: (column) => ColumnOrderings(column));
 
@@ -1786,9 +1755,6 @@ class $$TasksTableOrderingComposer
   ColumnOrderings<int> get notificationId => $composableBuilder(
       column: $table.notificationId,
       builder: (column) => ColumnOrderings(column));
-
-  ColumnOrderings<String> get priority => $composableBuilder(
-      column: $table.priority, builder: (column) => ColumnOrderings(column));
 }
 
 class $$TasksTableAnnotationComposer
@@ -1812,6 +1778,9 @@ class $$TasksTableAnnotationComposer
   GeneratedColumn<String> get type =>
       $composableBuilder(column: $table.type, builder: (column) => column);
 
+  GeneratedColumn<String> get priority =>
+      $composableBuilder(column: $table.priority, builder: (column) => column);
+
   GeneratedColumn<bool> get isCompleted => $composableBuilder(
       column: $table.isCompleted, builder: (column) => column);
 
@@ -1826,9 +1795,6 @@ class $$TasksTableAnnotationComposer
 
   GeneratedColumn<int> get notificationId => $composableBuilder(
       column: $table.notificationId, builder: (column) => column);
-
-  GeneratedColumn<String> get priority =>
-      $composableBuilder(column: $table.priority, builder: (column) => column);
 }
 
 class $$TasksTableTableManager extends RootTableManager<
@@ -1858,48 +1824,48 @@ class $$TasksTableTableManager extends RootTableManager<
             Value<String> title = const Value.absent(),
             Value<String> description = const Value.absent(),
             Value<String> type = const Value.absent(),
+            Value<String> priority = const Value.absent(),
             Value<bool> isCompleted = const Value.absent(),
             Value<DateTime> createdAt = const Value.absent(),
             Value<DateTime?> dueDate = const Value.absent(),
             Value<int> sortOrder = const Value.absent(),
             Value<int?> notificationId = const Value.absent(),
-            Value<String> priority = const Value.absent(),
           }) =>
               TasksCompanion(
             id: id,
             title: title,
             description: description,
             type: type,
+            priority: priority,
             isCompleted: isCompleted,
             createdAt: createdAt,
             dueDate: dueDate,
             sortOrder: sortOrder,
             notificationId: notificationId,
-            priority: priority,
           ),
           createCompanionCallback: ({
             Value<int> id = const Value.absent(),
             required String title,
             Value<String> description = const Value.absent(),
             Value<String> type = const Value.absent(),
+            Value<String> priority = const Value.absent(),
             Value<bool> isCompleted = const Value.absent(),
             Value<DateTime> createdAt = const Value.absent(),
             Value<DateTime?> dueDate = const Value.absent(),
             Value<int> sortOrder = const Value.absent(),
             Value<int?> notificationId = const Value.absent(),
-            Value<String> priority = const Value.absent(),
           }) =>
               TasksCompanion.insert(
             id: id,
             title: title,
             description: description,
             type: type,
+            priority: priority,
             isCompleted: isCompleted,
             createdAt: createdAt,
             dueDate: dueDate,
             sortOrder: sortOrder,
             notificationId: notificationId,
-            priority: priority,
           ),
           withReferenceMapper: (p0) => p0
               .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
@@ -2409,14 +2375,12 @@ typedef $$ActivityLogTableProcessedTableManager = ProcessedTableManager<
     PrefetchHooks Function()>;
 typedef $$MoodLogsTableCreateCompanionBuilder = MoodLogsCompanion Function({
   Value<int> id,
-  required int rating,
-  Value<String> note,
+  required int moodValue,
   Value<DateTime> loggedAt,
 });
 typedef $$MoodLogsTableUpdateCompanionBuilder = MoodLogsCompanion Function({
   Value<int> id,
-  Value<int> rating,
-  Value<String> note,
+  Value<int> moodValue,
   Value<DateTime> loggedAt,
 });
 
@@ -2432,11 +2396,8 @@ class $$MoodLogsTableFilterComposer
   ColumnFilters<int> get id => $composableBuilder(
       column: $table.id, builder: (column) => ColumnFilters(column));
 
-  ColumnFilters<int> get rating => $composableBuilder(
-      column: $table.rating, builder: (column) => ColumnFilters(column));
-
-  ColumnFilters<String> get note => $composableBuilder(
-      column: $table.note, builder: (column) => ColumnFilters(column));
+  ColumnFilters<int> get moodValue => $composableBuilder(
+      column: $table.moodValue, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<DateTime> get loggedAt => $composableBuilder(
       column: $table.loggedAt, builder: (column) => ColumnFilters(column));
@@ -2454,11 +2415,8 @@ class $$MoodLogsTableOrderingComposer
   ColumnOrderings<int> get id => $composableBuilder(
       column: $table.id, builder: (column) => ColumnOrderings(column));
 
-  ColumnOrderings<int> get rating => $composableBuilder(
-      column: $table.rating, builder: (column) => ColumnOrderings(column));
-
-  ColumnOrderings<String> get note => $composableBuilder(
-      column: $table.note, builder: (column) => ColumnOrderings(column));
+  ColumnOrderings<int> get moodValue => $composableBuilder(
+      column: $table.moodValue, builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<DateTime> get loggedAt => $composableBuilder(
       column: $table.loggedAt, builder: (column) => ColumnOrderings(column));
@@ -2476,11 +2434,8 @@ class $$MoodLogsTableAnnotationComposer
   GeneratedColumn<int> get id =>
       $composableBuilder(column: $table.id, builder: (column) => column);
 
-  GeneratedColumn<int> get rating =>
-      $composableBuilder(column: $table.rating, builder: (column) => column);
-
-  GeneratedColumn<String> get note =>
-      $composableBuilder(column: $table.note, builder: (column) => column);
+  GeneratedColumn<int> get moodValue =>
+      $composableBuilder(column: $table.moodValue, builder: (column) => column);
 
   GeneratedColumn<DateTime> get loggedAt =>
       $composableBuilder(column: $table.loggedAt, builder: (column) => column);
@@ -2510,26 +2465,22 @@ class $$MoodLogsTableTableManager extends RootTableManager<
               $$MoodLogsTableAnnotationComposer($db: db, $table: table),
           updateCompanionCallback: ({
             Value<int> id = const Value.absent(),
-            Value<int> rating = const Value.absent(),
-            Value<String> note = const Value.absent(),
+            Value<int> moodValue = const Value.absent(),
             Value<DateTime> loggedAt = const Value.absent(),
           }) =>
               MoodLogsCompanion(
             id: id,
-            rating: rating,
-            note: note,
+            moodValue: moodValue,
             loggedAt: loggedAt,
           ),
           createCompanionCallback: ({
             Value<int> id = const Value.absent(),
-            required int rating,
-            Value<String> note = const Value.absent(),
+            required int moodValue,
             Value<DateTime> loggedAt = const Value.absent(),
           }) =>
               MoodLogsCompanion.insert(
             id: id,
-            rating: rating,
-            note: note,
+            moodValue: moodValue,
             loggedAt: loggedAt,
           ),
           withReferenceMapper: (p0) => p0

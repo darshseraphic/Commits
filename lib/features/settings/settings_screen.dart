@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../../core/services/biometric_service.dart';
 import '../../core/theme/asrio_colors.dart';
 import '../../core/theme/asrio_text_styles.dart';
@@ -458,13 +459,13 @@ class SettingsScreen extends ConsumerWidget {
 
     if (confirmed != true || !context.mounted) return;
 
-    // Full data destruction sequence.
+    // Full data destruction sequence — raw SQL to avoid generated type issues.
     final db = ref.read(databaseProvider);
-    await db.delete(db.tasks).go();
-    await db.delete(db.diaryPages).go();
-    await db.delete(db.habits).go();
-    await db.delete(db.activityLog).go();
-    await db.delete(db.moodLogs).go();
+    await db.customStatement('DELETE FROM tasks');
+    await db.customStatement('DELETE FROM diary_pages');
+    await db.customStatement('DELETE FROM habits');
+    await db.customStatement('DELETE FROM activity_log');
+    await db.customStatement('DELETE FROM mood_logs');
 
     // Reset onboarding so the user sees it again on next launch.
     await ref.read(onboardingDoneProvider.notifier).markDone();

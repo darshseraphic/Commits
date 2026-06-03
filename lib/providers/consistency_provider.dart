@@ -1,7 +1,9 @@
-// lib/providers/consistency_provider.dart — Phase 5 (clean rewrite)
+// lib/providers/consistency_provider.dart — Hardcore fix: no MoodLog type
 
+import 'package:drift/drift.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../data/database/daos/mood_dao.dart';
 import '../data/models/app_usage_model.dart';
 import '../data/models/habit_model.dart';
 import '../data/models/mood_model.dart';
@@ -10,7 +12,6 @@ import 'repository_providers.dart';
 
 // ── Range Switcher ────────────────────────────────────────────────────────────
 
-/// Selected day range for Consistency charts: 7 | 30 | 90 | 365
 final selectedRangeProvider = StateProvider<int>(
   (ref) => 30,
   name: 'selectedRangeProvider',
@@ -55,28 +56,27 @@ final appUsagePermissionProvider = FutureProvider<bool>(
 
 final appUsageStatsProvider = FutureProvider<List<AppUsageModel>>(
   (ref) async {
-    final hasPermission =
-        await ref.watch(appUsagePermissionProvider.future);
-    if (!hasPermission) return [];
+    final ok = await ref.watch(appUsagePermissionProvider.future);
+    if (!ok) return [];
     return ref.watch(appUsageServiceProvider).getTodayUsageStats();
   },
   name: 'appUsageStatsProvider',
 );
 
 // ── Mood History (for correlation chart) ─────────────────────────────────────
+// Uses QueryRow extension directly — zero dependency on generated MoodLog.
 
 final moodHistoryForChartProvider = StreamProvider<List<MoodEntry>>(
   (ref) {
     final days = ref.watch(selectedRangeProvider);
-    return ref
-        .watch(databaseProvider)
-        .moodDao
+    final dao  = ref.watch(databaseProvider).moodDao;
+    return dao
         .watchMoodHistory(days: days)
         .map((rows) => rows
             .map((r) => MoodEntry(
-                  id: r.id,
-                  position: r.moodValue,   // Drift column name
-                  loggedAt: r.loggedAt,
+                  id:       r.idField,
+                  position: r.moodValueField,
+                  loggedAt: r.loggedAtField,
                 ))
             .toList());
   },
@@ -98,7 +98,7 @@ final consistencyStateProvider = Provider<ConsistencyState>(
   name: 'consistencyStateProvider',
 );
 
-// ── ConsistencyState value object ─────────────────────────────────────────────
+// ── ConsistencyState ──────────────────────────────────────────────────────────
 
 class ConsistencyState {
   const ConsistencyState({
@@ -111,13 +111,13 @@ class ConsistencyState {
     required this.selectedRange,
   });
 
-  final AsyncValue<StreakModel>           streak;
-  final AsyncValue<Map<DateTime, int>>    dailyOpenCounts;
-  final AsyncValue<Map<DateTime, bool>>   activeDiaryDates;
-  final AsyncValue<List<AppUsageModel>>   appUsageStats;
-  final AsyncValue<bool>                  hasUsagePermission;
-  final AsyncValue<List<MoodEntry>>       moodHistory;
-  final int                               selectedRange;
+  final AsyncValue<StreakModel>          streak;
+  final AsyncValue<Map<DateTime, int>>   dailyOpenCounts;
+  final AsyncValue<Map<DateTime, bool>>  activeDiaryDates;
+  final AsyncValue<List<AppUsageModel>>  appUsageStats;
+  final AsyncValue<bool>                 hasUsagePermission;
+  final AsyncValue<List<MoodEntry>>      moodHistory;
+  final int                              selectedRange;
 
   bool get isLoading  => streak.isLoading || dailyOpenCounts.isLoading;
   bool get hasError   => streak.hasError   || dailyOpenCounts.hasError;

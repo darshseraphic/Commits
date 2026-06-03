@@ -5,18 +5,19 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../core/utils/app_exceptions.dart';
 import '../data/models/habit_model.dart';
 import 'repository_providers.dart';
+import '../data/repositories/habit_repository.dart';
 
 // ── Stream Provider (Read) ────────────────────────────────────────────────────
 
 /// Live stream of active (non-archived) habits.
 final watchActiveHabitsProvider = StreamProvider<List<HabitModel>>(
-  (ref) => ref.watch(habitRepositoryProvider).watchActiveHabits(),
+      (ref) => ref.watch(habitRepositoryProvider).watchActiveHabits(),
   name: 'watchActiveHabitsProvider',
 );
 
 /// Live stream of all habits including archived.
 final watchAllHabitsProvider = StreamProvider<List<HabitModel>>(
-  (ref) => ref.watch(habitRepositoryProvider).watchAllHabits(),
+      (ref) => ref.watch(habitRepositoryProvider).watchAllHabits(),
   name: 'watchAllHabitsProvider',
 );
 
@@ -36,11 +37,11 @@ class HabitNotifier extends AsyncNotifier<HabitModel?> {
   }) async {
     state = const AsyncLoading();
     state = await AsyncValue.guard(() => _repo.addHabit(
-          title: title,
-          description: description,
-          iconName: iconName,
-          category: category,
-        ));
+      title: title,
+      description: description,
+      iconName: iconName,
+      category: category,
+    ));
   }
 
   Future<void> updateHabit(HabitModel habit) async {
@@ -71,4 +72,4 @@ class HabitNotifier extends AsyncNotifier<HabitModel?> {
 }
 
 final habitNotifierProvider =
-    AsyncNotifierProvider<HabitNotifier, HabitModel?>(() => HabitNotifier());
+AsyncNotifierProvider<HabitNotifier, HabitModel?>(() => HabitNotifier());
