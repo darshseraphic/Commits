@@ -149,7 +149,7 @@ class ExportService {
         await _db.moodDao.watchMoodHistory(days: 3650).first;
     final moodJson = moodLogs.map((m) => {
           'id':       m.id,
-          'position': m.position,
+          'position': m.moodValue,   // Drift column name is moodValue
           'loggedAt': m.loggedAt.toIso8601String(),
         }).toList();
 

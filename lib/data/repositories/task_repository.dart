@@ -20,21 +20,23 @@
 
 import 'package:drift/drift.dart';
 import 'package:flutter/foundation.dart';
+
 import '../../core/utils/app_exceptions.dart';
 import '../database/app_database.dart';
 import '../database/daos/tasks_dao.dart';
 import '../models/task_model.dart';
-import '../services/notification_scheduler.dart'; // Switched from notification_service.dart
+import '../services/notification_service.dart';
+import '../services/notification_scheduler.dart';
 
 class TaskRepository {
   const TaskRepository({
     required TasksDao tasksDao,
-    required NotificationScheduler notificationScheduler, // Switched to NotificationScheduler
+    required NotificationService notificationService,
   })  : _dao = tasksDao,
-        _notifications = notificationScheduler;
+        _notifications = notificationService;
 
   final TasksDao _dao;
-  final NotificationScheduler _notifications; // Switched to NotificationScheduler
+  final NotificationService _notifications;
 
   // ── Streams (pass-through with mapping) ───────────────────────────────────
 
@@ -93,7 +95,7 @@ class TaskRepository {
     int? scheduledNotificationId;
     if (reminderTime != null) {
       try {
-        scheduledNotificationId = await _notifications.scheduleTaskReminder(
+        scheduledNotificationId = await NotificationScheduler().scheduleTaskReminder(
           taskId: newId,
           title: title.trim(),
           scheduledTime: reminderTime,
@@ -156,7 +158,7 @@ class TaskRepository {
     // 'completed' notification firing for a task still shown as incomplete.
     if (task.notificationId != null) {
       try {
-        await _notifications.cancelNotification(task.notificationId!);
+        await NotificationService().plugin.cancel(task.notificationId!);
       } catch (e) {
         debugPrint('[TaskRepository] ⚠ Could not cancel notification: $e');
       }
@@ -187,7 +189,7 @@ class TaskRepository {
   Future<void> deleteTask(TaskModel task) async {
     if (task.notificationId != null) {
       try {
-        await _notifications.cancelNotification(task.notificationId!);
+        await NotificationService().plugin.cancel(task.notificationId!);
       } catch (e) {
         debugPrint('[TaskRepository] ⚠ Could not cancel notification on delete: $e');
       }
@@ -210,15 +212,15 @@ class TaskRepository {
   // ── Mapping: Drift → Domain ───────────────────────────────────────────────
 
   static TaskModel _toModel(Task row) => TaskModel(
-    id: row.id,
-    title: row.title,
-    description: row.description,
-    type: TaskModel.typeFromString(row.type),
-    priority: TaskModel.priorityFromString(row.priority),
-    isCompleted: row.isCompleted,
-    createdAt: row.createdAt,
-    dueDate: row.dueDate,
-    sortOrder: row.sortOrder,
-    notificationId: row.notificationId,
-  );
+        id: row.id,
+        title: row.title,
+        description: row.description,
+        type: TaskModel.typeFromString(row.type),
+        priority: TaskModel.priorityFromString(row.priority),
+        isCompleted: row.isCompleted,
+        createdAt: row.createdAt,
+        dueDate: row.dueDate,
+        sortOrder: row.sortOrder,
+        notificationId: row.notificationId,
+      );
 }

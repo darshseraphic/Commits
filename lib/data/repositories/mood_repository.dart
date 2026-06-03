@@ -19,7 +19,7 @@ class MoodRepository {
   /// Streams mood history for the past [days] days.
   Stream<List<MoodEntry>> watchMoodHistory({int days = 30}) =>
       _dao.watchMoodHistory(days: days)
-          .map((rows) => rows.map(_toModel).toList());
+          .map((rows) => rows.map((r) => _toModel(r)).toList());
 
   // ── Writes ────────────────────────────────────────────────────────────────
 
@@ -45,7 +45,7 @@ class MoodRepository {
 
   static MoodEntry _toModel(MoodLog row) => MoodEntry(
         id: row.id,
-        position: row.position,
+        position: row.moodValue,   // Drift column is moodValue, domain model is position
         loggedAt: row.loggedAt,
       );
 }

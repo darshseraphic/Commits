@@ -33,9 +33,9 @@ import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:encrypt/encrypt.dart';
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart' hide Key;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:encrypt/encrypt.dart' as enc;
+
 /// The result of a single encryption operation.
 /// Both [ciphertext] and [iv] must be stored together.
 /// [iv] is required for decryption and is NOT secret — it can be stored in plain.

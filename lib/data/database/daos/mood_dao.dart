@@ -54,7 +54,7 @@ class MoodDao extends DatabaseAccessor<AppDatabase> with _$MoodDaoMixin {
 
     await into(moodLogs).insert(
       MoodLogsCompanion.insert(
-        position: position,
+        moodValue: position,
         loggedAt: Value(DateTime.now()),
       ),
     );

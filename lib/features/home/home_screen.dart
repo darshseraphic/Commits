@@ -15,13 +15,15 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
-import 'package:asrio/data/models/habit_model.dart';
+
 import '../../core/theme/asrio_colors.dart';
 import '../../core/theme/asrio_text_styles.dart';
 import '../../providers/consistency_provider.dart';
+import '../../data/models/habit_model.dart';
 import '../../providers/task_provider.dart';
 import '../shared/widgets/bento_card.dart';
 import '../shared/widgets/circular_ring.dart';
+import 'widgets/mood_card.dart';
 
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
@@ -66,6 +68,16 @@ class HomeScreen extends ConsumerWidget {
                   loading: () => _FocusCard(taskTitle: 'Loading...'),
                   error: (_, __) => _FocusCard(taskTitle: 'Could not load tasks.'),
                 ),
+              ),
+            ),
+
+            const SliverToBoxAdapter(child: SizedBox(height: 16)),
+
+            // ── Mood Card ─────────────────────────────────────────────────
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: const MoodCard(),
               ),
             ),
 

@@ -1,8 +1,9 @@
 // lib/providers/consistency_provider.dart — Phase 5 (clean rewrite)
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:asrio/data/models/habit_model.dart';
+
 import '../data/models/app_usage_model.dart';
+import '../data/models/habit_model.dart';
 import '../data/models/mood_model.dart';
 import 'database_provider.dart';
 import 'repository_providers.dart';
@@ -74,7 +75,7 @@ final moodHistoryForChartProvider = StreamProvider<List<MoodEntry>>(
         .map((rows) => rows
             .map((r) => MoodEntry(
                   id: r.id,
-                  position: r.position,
+                  position: r.moodValue,   // Drift column name
                   loggedAt: r.loggedAt,
                 ))
             .toList());

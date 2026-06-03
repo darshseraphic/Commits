@@ -27,6 +27,7 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:timezone/data/latest_all.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
+
 import 'notification_service.dart';
 
 class NotificationScheduler {
@@ -102,13 +103,14 @@ class NotificationScheduler {
     final scheduledDate = _nextInstanceOf(time);
 
     await plugin.zonedSchedule(
-      uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.absoluteTime,
       _diaryNotificationId,
       'Time to write ✍️',
       "Your diary is waiting for today's thoughts.",
       scheduledDate,
       const NotificationDetails(android: androidDetails),
       androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+      uiLocalNotificationDateInterpretation:
+          UILocalNotificationDateInterpretation.absoluteTime,
       // Repeat at the same time every day — no manual rescheduling needed.
       matchDateTimeComponents: DateTimeComponents.time,
     );
@@ -146,13 +148,14 @@ class NotificationScheduler {
     final scheduledTz = tz.TZDateTime.from(scheduledTime, _localLocation);
 
     await plugin.zonedSchedule(
-      uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.absoluteTime,
       taskId,
       'Task Reminder',
       title,
       scheduledTz,
       const NotificationDetails(android: androidDetails),
       androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+      uiLocalNotificationDateInterpretation:
+          UILocalNotificationDateInterpretation.absoluteTime,
     );
 
     debugPrint(
