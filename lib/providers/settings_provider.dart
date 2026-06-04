@@ -183,7 +183,7 @@ class DiaryLockNotifier extends StateNotifier<bool> {
 // Read by DiaryScreen on initState to decide if relaunch-auth is needed.
 
 const _kLastTabKey = 'asrio_last_tab_index';
-const kDiaryTabIndex = 1; // Must match the tab order in main_screen.dart.
+const kDiaryTabIndex = 2; // Must match the tab order in main_screen.dart.
 
 final lastActiveTabProvider =
     StateNotifierProvider<LastTabNotifier, int>(
@@ -236,6 +236,12 @@ class OnboardingNotifier extends StateNotifier<bool> {
   Future<void> markDone() async {
     state = true;
     await _prefs?.setBool(_kOnboardingKey, true);
+  }
+
+  /// Resets onboarding — used by wipe data so user sees it on next launch.
+  Future<void> disable() async {
+    state = false;
+    await _prefs?.setBool(_kOnboardingKey, false);
   }
 }
 

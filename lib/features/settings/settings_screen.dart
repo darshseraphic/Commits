@@ -1,4 +1,5 @@
-// lib/features/settings/settings_screen.dart — Phase 6 (fully wired)
+// lib/features/settings/settings_screen.dart — Phase 7 fix
+// Wipe invalidates all providers. No marketing copy. Clean layout.
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -7,8 +8,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/services/biometric_service.dart';
 import '../../core/theme/asrio_colors.dart';
 import '../../core/theme/asrio_text_styles.dart';
-import '../../providers/settings_provider.dart';
+import '../../providers/consistency_provider.dart';
 import '../../providers/database_provider.dart';
+import '../../providers/diary_provider.dart';
+import '../../providers/habit_provider.dart';
+import '../../providers/mood_provider.dart';
+import '../../providers/settings_provider.dart';
+import '../../providers/task_provider.dart';
 import '../shared/widgets/bento_card.dart';
 import 'widgets/export_bottom_sheet.dart';
 import 'widgets/language_bottom_sheet.dart';
@@ -19,19 +25,18 @@ class SettingsScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final themeMode  = ref.watch(themeModeProvider);
-    final diaryLock  = ref.watch(diaryLockEnabledProvider);
-    final isDark     = themeMode == ThemeMode.dark;
-    final diaryReminderEnabled = ref.watch(diaryReminderEnabledProvider);
+    final themeMode   = ref.watch(themeModeProvider);
+    final diaryLock   = ref.watch(diaryLockEnabledProvider);
+    final isDark      = themeMode == ThemeMode.dark;
+    final diaryOn     = ref.watch(diaryReminderEnabledProvider);
     final diaryHour   = ref.watch(diaryReminderHourProvider);
-    final diaryMinute = ref.watch(diaryReminderMinuteProvider);
-    final currentLocale = ref.watch(localeCodeProvider);
+    final diaryMin    = ref.watch(diaryReminderMinuteProvider);
+    final locale      = ref.watch(localeCodeProvider);
 
-    // Format time for tile subtitle
-    final h12 = diaryHour == 0 ? 12 : (diaryHour > 12 ? diaryHour - 12 : diaryHour);
+    final h12    = diaryHour == 0 ? 12 : (diaryHour > 12 ? diaryHour - 12 : diaryHour);
     final period = diaryHour >= 12 ? 'PM' : 'AM';
-    final timeLabel = diaryReminderEnabled
-        ? '$h12:${diaryMinute.toString().padLeft(2, '0')} $period'
+    final timeStr = diaryOn
+        ? '$h12:${diaryMin.toString().padLeft(2, '0')} $period'
         : 'Off';
 
     return Scaffold(
@@ -41,47 +46,39 @@ class SettingsScreen extends ConsumerWidget {
           physics: const BouncingScrollPhysics(),
           slivers: [
 
-            // ── Header ────────────────────────────────────────────────
             SliverToBoxAdapter(
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(20, 28, 20, 0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('Settings', style: AsrioText.greeting),
-                    const SizedBox(height: 4),
-                    Text('Your control center.', style: AsrioText.bodyMuted),
-                  ],
-                ),
+                child: Text('Settings', style: AsrioText.greeting),
               ),
             ),
 
             const SliverToBoxAdapter(child: SizedBox(height: 24)),
 
-            // ── Security Hero Card ─────────────────────────────────────
+            // ── Security hero ─────────────────────────────────────────
             SliverToBoxAdapter(
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
                 child: BentoCard.black(
-                  padding: const EdgeInsets.all(24),
+                  padding: const EdgeInsets.all(22),
                   child: Row(
                     children: [
                       const Icon(Icons.shield_outlined,
-                          color: AsrioColors.white, size: 36),
-                      const SizedBox(width: 20),
+                          color: AsrioColors.white, size: 32),
+                      const SizedBox(width: 18),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text('Privacy Vault',
                                 style: AsrioText.cardTitleWhite),
-                            const SizedBox(height: 8),
-                            _StatusBadge(label: 'AES-256 ACTIVE'),
-                            const SizedBox(height: 4),
-                            _StatusBadge(label: 'LOCAL STORAGE ONLY'),
+                            const SizedBox(height: 6),
+                            _Badge(label: 'AES-256 ACTIVE'),
+                            const SizedBox(height: 3),
+                            _Badge(label: 'LOCAL ONLY'),
                             if (diaryLock) ...[
-                              const SizedBox(height: 4),
-                              _StatusBadge(label: 'DIARY LOCK ON'),
+                              const SizedBox(height: 3),
+                              _Badge(label: 'DIARY LOCK ON'),
                             ],
                           ],
                         ),
@@ -94,7 +91,7 @@ class SettingsScreen extends ConsumerWidget {
 
             const SliverToBoxAdapter(child: SizedBox(height: 16)),
 
-            // ── System Grid ───────────────────────────────────────────
+            // ── System grid ───────────────────────────────────────────
             SliverToBoxAdapter(
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -102,7 +99,7 @@ class SettingsScreen extends ConsumerWidget {
                   children: [
                     Expanded(
                       child: BentoCard.white(
-                        padding: const EdgeInsets.all(20),
+                        padding: const EdgeInsets.all(18),
                         onTap: () {
                           HapticFeedback.selectionClick();
                           ref.read(themeModeProvider.notifier).setTheme(
@@ -112,14 +109,12 @@ class SettingsScreen extends ConsumerWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Icon(
-                              isDark
-                                  ? Icons.light_mode_outlined
-                                  : Icons.dark_mode_outlined,
-                              size: 28, color: AsrioColors.black,
+                              isDark ? Icons.light_mode_outlined
+                                     : Icons.dark_mode_outlined,
+                              size: 26, color: AsrioColors.black,
                             ),
-                            const SizedBox(height: 12),
+                            const SizedBox(height: 10),
                             Text('Theme', style: AsrioText.taskTitle),
-                            const SizedBox(height: 4),
                             Text(isDark ? 'Dark' : 'Light',
                                 style: AsrioText.bodyMuted),
                           ],
@@ -129,15 +124,14 @@ class SettingsScreen extends ConsumerWidget {
                     const SizedBox(width: 12),
                     Expanded(
                       child: BentoCard.white(
-                        padding: const EdgeInsets.all(20),
+                        padding: const EdgeInsets.all(18),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             const Icon(Icons.vibration_rounded,
-                                size: 28, color: AsrioColors.black),
-                            const SizedBox(height: 12),
+                                size: 26, color: AsrioColors.black),
+                            const SizedBox(height: 10),
                             Text('Haptics', style: AsrioText.taskTitle),
-                            const SizedBox(height: 4),
                             Text('Enabled', style: AsrioText.bodyMuted),
                           ],
                         ),
@@ -154,41 +148,36 @@ class SettingsScreen extends ConsumerWidget {
             SliverToBoxAdapter(
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: _DiaryLockTile(
+                child: _LockTile(
                   isEnabled: diaryLock,
-                  onToggle: (v) =>
-                      _handleDiaryLockToggle(context, ref, v),
+                  onToggle: (v) => _handleLockToggle(context, ref, v),
                 ),
               ),
             ),
 
             const SliverToBoxAdapter(child: SizedBox(height: 12)),
 
-            // ── Notifications (NOW WIRED) ─────────────────────────────
+            // ── Notifications ─────────────────────────────────────────
             SliverToBoxAdapter(
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
                 child: BentoCard.white(
-                  padding: const EdgeInsets.all(20),
+                  padding: const EdgeInsets.all(18),
                   onTap: () => showNotificationSheet(context),
                   child: Row(
                     children: [
                       const Icon(Icons.notifications_none_rounded,
-                          size: 28, color: AsrioColors.black),
-                      const SizedBox(width: 16),
+                          size: 26, color: AsrioColors.black),
+                      const SizedBox(width: 14),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text('Notifications',
-                                style: AsrioText.taskTitle),
-                            const SizedBox(height: 4),
-                            Text(
-                              diaryReminderEnabled
-                                  ? 'Diary reminder at $timeLabel'
-                                  : 'No reminders set',
-                              style: AsrioText.bodyMuted,
-                            ),
+                            Text('Notifications', style: AsrioText.taskTitle),
+                            Text(diaryOn
+                                ? 'Diary at $timeStr'
+                                : 'No reminders set',
+                                style: AsrioText.bodyMuted),
                           ],
                         ),
                       ),
@@ -202,28 +191,24 @@ class SettingsScreen extends ConsumerWidget {
 
             const SliverToBoxAdapter(child: SizedBox(height: 12)),
 
-            // ── Language (NOW WIRED) ──────────────────────────────────
+            // ── Language ──────────────────────────────────────────────
             SliverToBoxAdapter(
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
                 child: BentoCard.white(
-                  padding: const EdgeInsets.all(20),
+                  padding: const EdgeInsets.all(18),
                   onTap: () => showLanguageSheet(context),
                   child: Row(
                     children: [
                       const Icon(Icons.language_rounded,
-                          size: 28, color: AsrioColors.black),
-                      const SizedBox(width: 16),
+                          size: 26, color: AsrioColors.black),
+                      const SizedBox(width: 14),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text('Language', style: AsrioText.taskTitle),
-                            const SizedBox(height: 4),
-                            Text(
-                              _languageName(currentLocale),
-                              style: AsrioText.bodyMuted,
-                            ),
+                            Text(_langName(locale), style: AsrioText.bodyMuted),
                           ],
                         ),
                       ),
@@ -237,39 +222,34 @@ class SettingsScreen extends ConsumerWidget {
 
             const SliverToBoxAdapter(child: SizedBox(height: 24)),
 
-            // ── Data Management ───────────────────────────────────────
             SliverToBoxAdapter(
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: Text('DATA MANAGEMENT', style: AsrioText.label),
+                child: Text('DATA', style: AsrioText.label),
               ),
             ),
 
             const SliverToBoxAdapter(child: SizedBox(height: 10)),
 
-            // ── Export (NOW WIRED) ────────────────────────────────────
+            // ── Export ────────────────────────────────────────────────
             SliverToBoxAdapter(
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
                 child: BentoCard.white(
-                  padding: const EdgeInsets.all(20),
+                  padding: const EdgeInsets.all(18),
                   onTap: () => showExportSheet(context),
                   child: Row(
                     children: [
                       const Icon(Icons.download_outlined,
-                          size: 24, color: AsrioColors.black),
-                      const SizedBox(width: 16),
+                          size: 22, color: AsrioColors.black),
+                      const SizedBox(width: 14),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text('Export Data',
-                                style: AsrioText.taskTitle),
-                            const SizedBox(height: 4),
-                            Text(
-                              'Encrypted or plaintext backup',
-                              style: AsrioText.bodyMuted,
-                            ),
+                            Text('Export Data', style: AsrioText.taskTitle),
+                            Text('Encrypted or plaintext backup',
+                                style: AsrioText.bodyMuted),
                           ],
                         ),
                       ),
@@ -283,14 +263,14 @@ class SettingsScreen extends ConsumerWidget {
 
             const SliverToBoxAdapter(child: SizedBox(height: 12)),
 
-            // ── Wipe Data ─────────────────────────────────────────────
+            // ── Wipe ──────────────────────────────────────────────────
             SliverToBoxAdapter(
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
                 child: GestureDetector(
                   onTap: () => _confirmWipe(context, ref),
                   child: Container(
-                    padding: const EdgeInsets.all(20),
+                    padding: const EdgeInsets.all(18),
                     decoration: BoxDecoration(
                       color: AsrioColors.white,
                       borderRadius: BorderRadius.circular(20),
@@ -300,9 +280,8 @@ class SettingsScreen extends ConsumerWidget {
                     child: Row(
                       children: [
                         const Icon(Icons.delete_forever_outlined,
-                            size: 24,
-                            color: AsrioColors.dangerBorder),
-                        const SizedBox(width: 16),
+                            size: 22, color: AsrioColors.dangerBorder),
+                        const SizedBox(width: 14),
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -310,11 +289,8 @@ class SettingsScreen extends ConsumerWidget {
                               Text('Wipe Local Data',
                                   style: AsrioText.taskTitle.copyWith(
                                       color: AsrioColors.dangerBorder)),
-                              const SizedBox(height: 4),
-                              Text(
-                                'Permanently delete all tasks, diary, and habits.',
-                                style: AsrioText.bodyMuted,
-                              ),
+                              Text('Permanently delete everything.',
+                                  style: AsrioText.bodyMuted),
                             ],
                           ),
                         ),
@@ -328,28 +304,21 @@ class SettingsScreen extends ConsumerWidget {
             // ── Branding ──────────────────────────────────────────────
             SliverToBoxAdapter(
               child: Padding(
-                padding: const EdgeInsets.fromLTRB(20, 40, 20, 32),
+                padding: const EdgeInsets.fromLTRB(20, 36, 20, 32),
                 child: Column(
                   children: [
-                    // App logo
-                    Image.asset(
-                      'assets/Asrio.png',
-                      width: 48,
-                      height: 48,
-                      errorBuilder: (_, __, ___) => const Icon(
-                        Icons.apps_rounded,
-                        size: 48,
-                        color: AsrioColors.muted,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
+                    Image.asset('assets/Asrio.png', width: 40, height: 40,
+                        errorBuilder: (_, __, ___) => const Icon(
+                            Icons.apps_rounded,
+                            size: 40, color: AsrioColors.muted)),
+                    const SizedBox(height: 10),
                     Text('ASRIO v1.0',
                         style: AsrioText.label
                             .copyWith(color: AsrioColors.black)),
-                    const SizedBox(height: 4),
+                    const SizedBox(height: 3),
                     Text('Designed by Darshseraphic',
                         style: AsrioText.caption),
-                    const SizedBox(height: 4),
+                    const SizedBox(height: 3),
                     Text('All data stays on device.',
                         style: AsrioText.caption),
                   ],
@@ -362,46 +331,29 @@ class SettingsScreen extends ConsumerWidget {
     );
   }
 
-  // ── Helpers ───────────────────────────────────────────────────────────────
+  // ── Diary Lock ────────────────────────────────────────────────────────────
 
-  static const _localeNames = {
-    'en': 'English', 'de': 'Deutsch', 'fr': 'Français',
-    'es': 'Español', 'it': 'Italiano', 'pt': 'Português',
-    'hu': 'Magyar', 'ro': 'Română', 'tr': 'Türkçe',
-    'ru': 'Русский', 'uk': 'Українська', 'zh': '中文',
-    'ja': '日本語', 'ko': '한국어', 'vi': 'Tiếng Việt',
-    'ar': 'العربية', 'id': 'Bahasa Indonesia', 'th': 'ภาษาไทย',
-    'hi': 'हिन्दी', 'nl': 'Nederlands', 'pl': 'Polski', 'sv': 'Svenska',
-  };
-
-  String _languageName(String code) =>
-      _localeNames[code] ?? code.toUpperCase();
-
-  Future<void> _handleDiaryLockToggle(
+  Future<void> _handleLockToggle(
       BuildContext context, WidgetRef ref, bool enable) async {
     if (!enable) {
       await ref.read(diaryLockEnabledProvider.notifier).disable();
       return;
     }
     final canUse = await BiometricService().canUseBiometrics();
-    if (!canUse) {
-      if (!context.mounted) return;
-      _showNoBiometricsDialog(context);
-      return;
-    }
-    final result = await BiometricService()
-        .authenticate(lockEnabled: true,
-            reason: 'Confirm your identity to enable Diary Lock.');
+    if (!canUse) { if (context.mounted) _noBioDialog(context); return; }
+    final r = await BiometricService().authenticate(
+        lockEnabled: true,
+        reason: 'Confirm your identity to enable Diary Lock.');
     if (!context.mounted) return;
-    if (result == BiometricResult.success) {
+    if (r == BiometricResult.success) {
       await ref.read(diaryLockEnabledProvider.notifier).enable();
       HapticFeedback.mediumImpact();
-    } else if (result == BiometricResult.unavailable) {
-      _showNoBiometricsDialog(context);
+    } else if (r == BiometricResult.unavailable) {
+      _noBioDialog(context);
     }
   }
 
-  void _showNoBiometricsDialog(BuildContext context) {
+  void _noBioDialog(BuildContext context) {
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
@@ -410,8 +362,7 @@ class SettingsScreen extends ConsumerWidget {
             borderRadius: BorderRadius.circular(20)),
         title: Text('Biometrics unavailable', style: AsrioText.cardTitle),
         content: Text(
-          'Your device does not have biometrics enrolled.\n\n'
-          'Go to device Settings → Security to set up fingerprint first.',
+          'No biometrics enrolled. Go to device Settings → Security.',
           style: AsrioText.bodyMuted,
         ),
         actions: [
@@ -426,9 +377,11 @@ class SettingsScreen extends ConsumerWidget {
     );
   }
 
+  // ── Wipe — invalidates ALL providers ─────────────────────────────────────
+
   Future<void> _confirmWipe(BuildContext context, WidgetRef ref) async {
     HapticFeedback.heavyImpact();
-    final confirmed = await showDialog<bool>(
+    final ok = await showDialog<bool>(
       context: context,
       builder: (_) => AlertDialog(
         backgroundColor: AsrioColors.white,
@@ -436,8 +389,7 @@ class SettingsScreen extends ConsumerWidget {
             borderRadius: BorderRadius.circular(20)),
         title: Text('Wipe all data?', style: AsrioText.cardTitle),
         content: Text(
-          'This will permanently delete your tasks, diary entries, '
-          'habits, and mood logs. This action cannot be undone.',
+          'This permanently deletes all tasks, diary, habits, and mood logs.',
           style: AsrioText.bodyMuted,
         ),
         actions: [
@@ -457,21 +409,34 @@ class SettingsScreen extends ConsumerWidget {
       ),
     );
 
-    if (confirmed != true || !context.mounted) return;
+    if (ok != true || !context.mounted) return;
 
-    // Full data destruction sequence — raw SQL to avoid generated type issues.
     final db = ref.read(databaseProvider);
+
+    // ── Raw SQL deletes — no generated type dependencies ─────────────────
     await db.customStatement('DELETE FROM tasks');
     await db.customStatement('DELETE FROM diary_pages');
     await db.customStatement('DELETE FROM habits');
     await db.customStatement('DELETE FROM activity_log');
     await db.customStatement('DELETE FROM mood_logs');
 
-    // Reset onboarding so the user sees it again on next launch.
-    await ref.read(onboardingDoneProvider.notifier).markDone();
-    // Note: We do NOT call EncryptionService.destroyKey() here because
-    // the user may want to reinstall and restore from backup.
-    // Key destruction is a separate, more drastic action for Phase 7.
+    // ── Invalidate ALL Riverpod state so UI refreshes cleanly ────────────
+    ref.invalidate(watchDailyTasksProvider);
+    ref.invalidate(watchYearlyTasksProvider);
+    ref.invalidate(watchAllTasksProvider);
+    ref.invalidate(activeDiaryDatesProvider);
+    ref.invalidate(diaryNotifierProvider);
+    ref.invalidate(watchActiveHabitsProvider);
+    ref.invalidate(watchAllHabitsProvider);
+    ref.invalidate(todayMoodProvider);
+    ref.invalidate(streakProvider);
+    ref.invalidate(dailyOpenCountsProvider);
+    ref.invalidate(diaryActiveDatesProvider);
+    ref.invalidate(appUsagePermissionProvider);
+    ref.invalidate(appUsageStatsProvider);
+
+    // ── Reset onboarding so user sees it on next launch ──────────────────
+    await ref.read(onboardingDoneProvider.notifier).disable();
 
     if (context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -482,55 +447,66 @@ class SettingsScreen extends ConsumerWidget {
       );
     }
   }
+
+  static const _localeNames = {
+    'en': 'English', 'de': 'Deutsch', 'fr': 'Français',
+    'es': 'Español', 'it': 'Italiano', 'pt': 'Português',
+    'hu': 'Magyar', 'ro': 'Română', 'tr': 'Türkçe',
+    'ru': 'Русский', 'uk': 'Українська', 'zh': '中文',
+    'ja': '日本語', 'ko': '한국어', 'vi': 'Tiếng Việt',
+    'ar': 'العربية', 'id': 'Bahasa Indonesia', 'th': 'ภาษาไทย',
+    'hi': 'हिन्दी', 'nl': 'Nederlands', 'pl': 'Polski', 'sv': 'Svenska',
+  };
+
+  String _langName(String code) => _localeNames[code] ?? code.toUpperCase();
 }
 
-// ── Diary Lock Tile ───────────────────────────────────────────────────────────
+// ── Widgets ───────────────────────────────────────────────────────────────────
 
-class _DiaryLockTile extends StatefulWidget {
-  const _DiaryLockTile({required this.isEnabled, required this.onToggle});
+class _LockTile extends StatefulWidget {
+  const _LockTile({required this.isEnabled, required this.onToggle});
   final bool isEnabled;
   final Future<void> Function(bool) onToggle;
 
   @override
-  State<_DiaryLockTile> createState() => _DiaryLockTileState();
+  State<_LockTile> createState() => _LockTileState();
 }
 
-class _DiaryLockTileState extends State<_DiaryLockTile> {
-  String _biometricLabel = 'Biometric';
+class _LockTileState extends State<_LockTile> {
+  String _label = 'Biometric';
   bool _toggling = false;
 
   @override
   void initState() {
     super.initState();
     BiometricService().getBiometricTypeLabel().then(
-        (l) { if (mounted) setState(() => _biometricLabel = l); });
+        (l) { if (mounted) setState(() => _label = l); });
   }
 
   @override
   Widget build(BuildContext context) {
     return BentoCard.white(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(18),
       child: Row(
         children: [
           AnimatedSwitcher(
-            duration: const Duration(milliseconds: 250),
+            duration: const Duration(milliseconds: 200),
             child: Icon(
               widget.isEnabled ? Icons.lock_rounded : Icons.lock_open_outlined,
               key: ValueKey(widget.isEnabled),
-              size: 28, color: AsrioColors.black,
+              size: 26, color: AsrioColors.black,
             ),
           ),
-          const SizedBox(width: 16),
+          const SizedBox(width: 14),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text('Diary Lock', style: AsrioText.taskTitle),
-                const SizedBox(height: 4),
                 Text(
                   widget.isEnabled
-                      ? '$_biometricLabel required to open diary'
-                      : 'Tap to enable $_biometricLabel protection',
+                      ? '$_label required'
+                      : 'Enable $_label protection',
                   style: AsrioText.bodyMuted,
                 ),
               ],
@@ -570,14 +546,14 @@ class _DiaryLockTileState extends State<_DiaryLockTile> {
   }
 }
 
-class _StatusBadge extends StatelessWidget {
-  const _StatusBadge({required this.label});
+class _Badge extends StatelessWidget {
+  const _Badge({required this.label});
   final String label;
 
   @override
   Widget build(BuildContext context) => Container(
-        margin: const EdgeInsets.only(bottom: 4),
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+        margin: const EdgeInsets.only(bottom: 3),
+        padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
         decoration: BoxDecoration(
           color: AsrioColors.white.withAlpha(20),
           borderRadius: BorderRadius.circular(4),

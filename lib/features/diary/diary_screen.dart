@@ -1,18 +1,5 @@
-// lib/features/diary/diary_screen.dart  — Phase 4 (complete rewrite)
-//
-// ══════════════════════════════════════════════════════════════════════════════
-// Diary Screen — List View + Zen Mode Editor (Phase 4)
-// ══════════════════════════════════════════════════════════════════════════════
-//
-// PHASE 4 ADDITIONS vs Phase 3:
-//   ✅ Correct Quill round-trip (save → encrypt → decrypt → reload)
-//   ✅ _initialized guard (prevents controller reinit on stream rebuild)
-//   ✅ Biometric auth — 3 trigger points
-//   ✅ Hero on date number (list row → editor header)
-//   ✅ Book-open transition via diaryScreenTransitionBuilder
-//   ✅ Date pulse animation signals decrypt completion
-//   ✅ Relaunch auth: checks if diary was last screen
-// ══════════════════════════════════════════════════════════════════════════════
+// lib/features/diary/diary_screen.dart — Phase 7 fix
+// Pencil fixed, clean empty state, no marketing copy
 
 import 'dart:convert';
 import 'dart:ui';
@@ -41,9 +28,6 @@ class DiaryScreen extends ConsumerStatefulWidget {
 class _DiaryScreenState extends ConsumerState<DiaryScreen> {
   bool _inEditor = false;
   DateTime? _editingDate;
-
-  // ── Trigger 3: Relaunch auth ───────────────────────────────────────────────
-  // Check on first build if diary was the last open screen.
   bool _relaunchCheckDone = false;
 
   @override
@@ -55,74 +39,61 @@ class _DiaryScreenState extends ConsumerState<DiaryScreen> {
   Future<void> _checkRelaunch() async {
     if (_relaunchCheckDone) return;
     _relaunchCheckDone = true;
-
-    final lastTab = ref.read(lastActiveTabProvider);
+    final lastTab    = ref.read(lastActiveTabProvider);
     final lockEnabled = ref.read(diaryLockEnabledProvider);
-
-    // If diary was the last active screen AND lock is on,
-    // show the list but blur it until auth passes.
     if (lastTab == kDiaryTabIndex && lockEnabled) {
-      final allowed = await BiometricService().isAllowed(lockEnabled: lockEnabled);
+      final allowed = await BiometricService()
+          .isAllowed(lockEnabled: lockEnabled);
       if (!allowed && mounted) {
-        // Auth failed/cancelled — navigate away from diary tab.
-        // The PageController is owned by MainScreen so we use a callback.
-        // For now: show a snackbar. Phase 6 will add tab-switching callback.
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Authentication required to access your diary.'),
-              backgroundColor: AsrioColors.black,
-            ),
-          );
-        }
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Authentication required.'),
+            backgroundColor: AsrioColors.black,
+          ),
+        );
       }
     }
   }
 
-  // ── Open editor (Trigger 1: entry tap) ───────────────────────────────────
-
   Future<void> _openEditor(DateTime date) async {
     final lockEnabled = ref.read(diaryLockEnabledProvider);
-
     if (lockEnabled) {
-      final result = await BiometricService().authenticate(
-        lockEnabled: lockEnabled,
-        reason: 'Authenticate to open your diary.',
-      );
-
+      final result = await BiometricService()
+          .authenticate(lockEnabled: lockEnabled,
+              reason: 'Authenticate to open your diary.');
       if (result != BiometricResult.success &&
           result != BiometricResult.lockDisabled) {
         if (!mounted) return;
         if (result != BiometricResult.cancelled) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-              content: Text('Authentication failed. Try again.'),
+              content: Text('Authentication failed.'),
               backgroundColor: AsrioColors.black,
-              duration: Duration(seconds: 2),
             ),
           );
         }
-        return; // Stay on list view.
+        return;
       }
     }
 
-    // Auth passed (or lock is off). Load the date and open.
-    ref.read(diaryNotifierProvider.notifier).navigateToDate(date);
+    if (!mounted) return;
 
+    // Navigate diary notifier to the selected date BEFORE switching view
+    await ref.read(diaryNotifierProvider.notifier).navigateToDate(date);
+
+    if (!mounted) return;
     setState(() {
-      _inEditor = true;
+      _inEditor    = true;
       _editingDate = date;
     });
     zenModeNotifier.value = true;
-
-    // Save this tab as last active.
     ref.read(lastActiveTabProvider.notifier).setTab(kDiaryTabIndex);
   }
 
   void _closeEditor() {
     ref.read(diaryNotifierProvider.notifier).saveImmediately();
     setState(() {
-      _inEditor = false;
+      _inEditor    = false;
       _editingDate = null;
     });
     zenModeNotifier.value = false;
@@ -135,24 +106,24 @@ class _DiaryScreenState extends ConsumerState<DiaryScreen> {
       transitionBuilder: diaryScreenTransitionBuilder,
       child: _inEditor
           ? _DiaryEditor(
-              key: const ValueKey('editor'),
-              date: _editingDate ?? DateTime.now(),
+              key:     const ValueKey('editor'),
+              date:    _editingDate ?? DateTime.now(),
               onClose: _closeEditor,
             )
-          : _DiaryListView(
-              key: const ValueKey('list'),
-              onEntryTap: _openEditor,
+          : _DiaryList(
+              key:         const ValueKey('list'),
+              onEntryTap:  _openEditor,
             ),
     );
   }
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
-// DIARY LIST VIEW
+// LIST VIEW
 // ══════════════════════════════════════════════════════════════════════════════
 
-class _DiaryListView extends ConsumerWidget {
-  const _DiaryListView({super.key, required this.onEntryTap});
+class _DiaryList extends ConsumerWidget {
+  const _DiaryList({super.key, required this.onEntryTap});
   final Future<void> Function(DateTime) onEntryTap;
 
   @override
@@ -166,67 +137,65 @@ class _DiaryListView extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // ── Header ───────────────────────────────────────────────────
             Padding(
               padding: const EdgeInsets.fromLTRB(24, 28, 24, 0),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text('Diary', style: AsrioText.greeting),
-                  Row(
-                    children: [
-                      // Lock status indicator
-                      if (lockEnabled)
-                        Padding(
-                          padding: const EdgeInsets.only(right: 12),
-                          child: Icon(
-                            Icons.lock_rounded,
-                            size: 16,
-                            color: AsrioColors.black,
-                          ),
-                        ),
-                      // New entry
-                      GestureDetector(
-                        onTap: () {
-                          HapticFeedback.lightImpact();
-                          onEntryTap(DateTime.now());
-                        },
-                        child: Container(
-                          width: 36,
-                          height: 36,
-                          decoration: BoxDecoration(
-                            color: AsrioColors.black,
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          child: const Icon(Icons.edit_outlined,
-                              color: AsrioColors.white, size: 18),
-                        ),
+                  Row(children: [
+                    if (lockEnabled)
+                      const Padding(
+                        padding: EdgeInsets.only(right: 12),
+                        child: Icon(Icons.lock_rounded,
+                            size: 16, color: AsrioColors.black),
                       ),
-                    ],
-                  ),
+                    GestureDetector(
+                      onTap: () {
+                        HapticFeedback.lightImpact();
+                        onEntryTap(DateTime.now());
+                      },
+                      child: Container(
+                        width: 36, height: 36,
+                        decoration: BoxDecoration(
+                          color: AsrioColors.black,
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: const Icon(Icons.edit_outlined,
+                            color: AsrioColors.white, size: 18),
+                      ),
+                    ),
+                  ]),
                 ],
               ),
             ),
 
-            const SizedBox(height: 8),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24),
-              child: Text(
-                '${activeDates.valueOrNull?.length ?? 0} entries',
-                style: AsrioText.bodyMuted,
-              ),
-            ),
             const SizedBox(height: 24),
-            const Divider(
-                color: AsrioColors.border, height: 1, thickness: 0.8),
+            const Divider(color: AsrioColors.border, height: 1, thickness: 0.8),
 
-            // ── Entry List ────────────────────────────────────────────────
             Expanded(
               child: activeDates.when(
+                loading: () => const Center(
+                    child: CircularProgressIndicator(color: AsrioColors.black)),
+                error: (_, __) => Center(
+                    child: Text('Could not load.', style: AsrioText.bodyMuted)),
                 data: (dates) {
+                  // Empty state — minimal, no marketing copy
                   if (dates.isEmpty) {
-                    return _EmptyDiaryState(onTap: onEntryTap);
+                    return Center(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(Icons.chrome_reader_mode_outlined,
+                              size: 40, color: AsrioColors.muted),
+                          const SizedBox(height: 12),
+                          Text('No entries yet.',
+                              style: AsrioText.bodyMuted),
+                        ],
+                      ),
+                    );
                   }
+
                   final sorted = dates.keys.toList()
                     ..sort((a, b) => b.compareTo(a));
 
@@ -234,19 +203,15 @@ class _DiaryListView extends ConsumerWidget {
                     physics: const BouncingScrollPhysics(),
                     itemCount: sorted.length,
                     separatorBuilder: (_, __) => const Divider(
-                        color: AsrioColors.border, height: 1, thickness: 0.8),
-                    itemBuilder: (_, i) => _DiaryEntryRow(
-                      date: sorted[i],
+                        color: AsrioColors.border,
+                        height: 1,
+                        thickness: 0.8),
+                    itemBuilder: (_, i) => _EntryRow(
+                      date:  sorted[i],
                       onTap: () => onEntryTap(sorted[i]),
                     ),
                   );
                 },
-                loading: () => const Center(
-                  child: CircularProgressIndicator(color: AsrioColors.black),
-                ),
-                error: (_, __) => Center(
-                  child: Text('Could not load entries.', style: AsrioText.bodyMuted),
-                ),
               ),
             ),
           ],
@@ -256,10 +221,8 @@ class _DiaryListView extends ConsumerWidget {
   }
 }
 
-// ── Entry Row with Hero on date ───────────────────────────────────────────────
-
-class _DiaryEntryRow extends StatelessWidget {
-  const _DiaryEntryRow({required this.date, required this.onTap});
+class _EntryRow extends StatelessWidget {
+  const _EntryRow({required this.date, required this.onTap});
   final DateTime date;
   final VoidCallback onTap;
 
@@ -273,7 +236,6 @@ class _DiaryEntryRow extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 18),
         child: Row(
           children: [
-            // ── Hero: date number flies to editor header ──────────────
             SizedBox(
               width: 48,
               child: Column(
@@ -285,19 +247,17 @@ class _DiaryEntryRow extends StatelessWidget {
                       color: Colors.transparent,
                       child: Text(
                         DateFormat('d').format(date),
-                        style: AsrioText.cardTitle.copyWith(fontSize: 22),
+                        style:
+                            AsrioText.cardTitle.copyWith(fontSize: 22),
                       ),
                     ),
                   ),
-                  Text(
-                    DateFormat('MMM').format(date).toUpperCase(),
-                    style: AsrioText.label,
-                  ),
+                  Text(DateFormat('MMM').format(date).toUpperCase(),
+                      style: AsrioText.label),
                 ],
               ),
             ),
             const SizedBox(width: 16),
-            // ── Preview ───────────────────────────────────────────────
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -305,18 +265,16 @@ class _DiaryEntryRow extends StatelessWidget {
                   Text(DateFormat('EEEE').format(date),
                       style: AsrioText.diaryDate),
                   const SizedBox(height: 3),
-                  Text(
-                    'Tap to continue writing...',
-                    style: AsrioText.diaryPreview,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
+                  Text('Continue writing...',
+                      style: AsrioText.diaryPreview,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis),
                 ],
               ),
             ),
             const SizedBox(width: 12),
             const Icon(Icons.lock_outline_rounded,
-                size: 14, color: AsrioColors.muted),
+                size: 13, color: AsrioColors.muted),
           ],
         ),
       ),
@@ -324,39 +282,12 @@ class _DiaryEntryRow extends StatelessWidget {
   }
 }
 
-class _EmptyDiaryState extends StatelessWidget {
-  const _EmptyDiaryState({required this.onTap});
-  final Future<void> Function(DateTime) onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const Icon(Icons.auto_stories_outlined,
-              size: 48, color: AsrioColors.muted),
-          const SizedBox(height: 16),
-          Text('Your diary is empty.', style: AsrioText.cardTitle),
-          const SizedBox(height: 8),
-          Text('Tap the pencil to write your first entry.',
-              style: AsrioText.bodyMuted),
-        ],
-      ),
-    );
-  }
-}
-
 // ══════════════════════════════════════════════════════════════════════════════
-// DIARY EDITOR — Zen Mode
+// EDITOR — ZEN MODE
 // ══════════════════════════════════════════════════════════════════════════════
 
 class _DiaryEditor extends ConsumerStatefulWidget {
-  const _DiaryEditor({
-    super.key,
-    required this.date,
-    required this.onClose,
-  });
+  const _DiaryEditor({super.key, required this.date, required this.onClose});
   final DateTime date;
   final VoidCallback onClose;
 
@@ -366,46 +297,29 @@ class _DiaryEditor extends ConsumerStatefulWidget {
 
 class _DiaryEditorState extends ConsumerState<_DiaryEditor>
     with WidgetsBindingObserver, TickerProviderStateMixin {
-  QuillController? _quillController;
-  final FocusNode _focusNode = FocusNode();
-
-  // ── Phase 4: _initialized guard ──────────────────────────────────────────
-  // Prevents controller re-initialization when the Drift stream emits after
-  // an auto-save. Without this, the cursor jumps to the top after every save.
+  QuillController? _ctrl;
+  final FocusNode _focus = FocusNode();
   bool _initialized = false;
-
-  // Ghost Mode
   bool _isBlurred = false;
   bool _pendingAuth = false;
-
-  // Date pulse animation (signals decryption complete)
-  late AnimationController _pulseController;
-  late Animation<double> _pulseAnim;
-
-  // Floating toolbar visibility
   bool _toolbarVisible = false;
+
+  late AnimationController _pulseCtrl;
+  late Animation<double> _pulseAnim;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-
-    _pulseController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 300),
-    );
+    _pulseCtrl = AnimationController(
+        vsync: this, duration: const Duration(milliseconds: 300));
     _pulseAnim = Tween<double>(begin: 1.0, end: 0.55).animate(
-      CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
-    );
-
-    WidgetsBinding.instance.addPostFrameCallback((_) => _initController());
+        CurvedAnimation(parent: _pulseCtrl, curve: Curves.easeInOut));
+    WidgetsBinding.instance.addPostFrameCallback((_) => _initCtrl());
   }
 
-  // ── Quill round-trip (Phase 4 fix) ───────────────────────────────────────
-
-  void _initController() {
-    if (_initialized) return; // Guard: only run once per editor session.
-
+  void _initCtrl() {
+    if (_initialized) return;
     final session = ref.read(diaryNotifierProvider).valueOrNull;
     if (session == null || !mounted) return;
 
@@ -414,15 +328,11 @@ class _DiaryEditorState extends ConsumerState<_DiaryEditor>
         : null;
 
     Document doc;
-
     if (page != null && page.content.isNotEmpty) {
       try {
-        // Phase 4 fix: correct JSON decode path.
-        // content is a JSON string: '[{"insert":"Hello\n"}]'
-        final List<dynamic> deltaJson = jsonDecode(page.content) as List<dynamic>;
-        doc = Document.fromJson(deltaJson);
-      } catch (e) {
-        debugPrint('[DiaryEditor] Failed to parse Quill delta: $e');
+        doc = Document.fromJson(
+            jsonDecode(page.content) as List<dynamic>);
+      } catch (_) {
         doc = Document();
       }
     } else {
@@ -434,85 +344,54 @@ class _DiaryEditorState extends ConsumerState<_DiaryEditor>
       selection: const TextSelection.collapsed(offset: 0),
     );
 
-    // Listen for content changes → debounced auto-save via DiaryNotifier.
     controller.document.changes.listen((_) {
-      if (!mounted || _quillController == null) return;
-
-      final deltaJson = _quillController!.document.toDelta().toJson();
-      final content = jsonEncode(deltaJson);
-
-      ref
-          .read(diaryNotifierProvider.notifier)
-          .updatePageContent(
-            session.currentPageIndex,
-            content,
-          );
-
-      // Show/hide floating toolbar based on text selection.
-      final hasSelection = !_quillController!.selection.isCollapsed;
-      if (hasSelection != _toolbarVisible && mounted) {
-        setState(() => _toolbarVisible = hasSelection);
+      if (!mounted || _ctrl == null) return;
+      final deltaJson = _ctrl!.document.toDelta().toJson();
+      final content   = jsonEncode(deltaJson);
+      ref.read(diaryNotifierProvider.notifier)
+          .updatePageContent(session.currentPageIndex, content);
+      final hasSel = !_ctrl!.selection.isCollapsed;
+      if (hasSel != _toolbarVisible && mounted) {
+        setState(() => _toolbarVisible = hasSel);
       }
     });
 
     setState(() {
-      _quillController = controller;
+      _ctrl        = controller;
       _initialized = true;
     });
-
-    // Pulse the date to signal "content loaded".
-    _pulseController.forward().then((_) => _pulseController.reverse());
+    _pulseCtrl.forward().then((_) => _pulseCtrl.reverse());
   }
-
-  // ── Ghost Mode — Trigger 2: background/foreground ─────────────────────────
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (!mounted) return;
-
     if (state == AppLifecycleState.paused ||
         state == AppLifecycleState.inactive) {
-      // Blur immediately when going to background.
-      setState(() {
-        _isBlurred = true;
-        _pendingAuth = true;
-      });
+      setState(() { _isBlurred = true; _pendingAuth = true; });
     } else if (state == AppLifecycleState.resumed && _pendingAuth) {
-      // App returned — require auth before lifting blur.
-      _requestAuthAfterResume();
+      _requestAuth();
     }
   }
 
-  Future<void> _requestAuthAfterResume() async {
-    final lockEnabled = ref.read(diaryLockEnabledProvider);
-
-    final result = await BiometricService().authenticate(
-      lockEnabled: lockEnabled,
-      reason: 'Authenticate to continue writing.',
-    );
-
+  Future<void> _requestAuth() async {
+    final lock = ref.read(diaryLockEnabledProvider);
+    final result = await BiometricService()
+        .authenticate(lockEnabled: lock,
+            reason: 'Authenticate to continue writing.');
     if (!mounted) return;
-
     if (result == BiometricResult.success ||
         result == BiometricResult.lockDisabled) {
-      setState(() {
-        _isBlurred = false;
-        _pendingAuth = false;
-      });
-    } else if (result == BiometricResult.cancelled) {
-      // Keep blur — user dismissed the prompt. They must try again.
-      // The blur overlay has a "Try Again" button for this case.
-    } else {
-      // Failed — keep blur, let user retry via the overlay button.
+      setState(() { _isBlurred = false; _pendingAuth = false; });
     }
   }
 
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
-    _pulseController.dispose();
-    _quillController?.dispose();
-    _focusNode.dispose();
+    _pulseCtrl.dispose();
+    _ctrl?.dispose();
+    _focus.dispose();
     super.dispose();
   }
 
@@ -524,11 +403,9 @@ class _DiaryEditorState extends ConsumerState<_DiaryEditor>
       backgroundColor: AsrioColors.white,
       body: Stack(
         children: [
-          // ── Main editor body ─────────────────────────────────────────
           SafeArea(
             child: Column(
               children: [
-                // ── Editor top bar ──────────────────────────────────
                 Padding(
                   padding: const EdgeInsets.fromLTRB(4, 12, 16, 0),
                   child: Row(
@@ -539,87 +416,72 @@ class _DiaryEditorState extends ConsumerState<_DiaryEditor>
                         onPressed: widget.onClose,
                       ),
                       Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            // ── Hero: date flies from list row ──────
-                            Hero(
-                              tag: heroDateTag(widget.date),
-                              child: Material(
-                                color: Colors.transparent,
-                                child: AnimatedBuilder(
-                                  animation: _pulseAnim,
-                                  builder: (_, child) => Opacity(
-                                    opacity: _pulseAnim.value,
-                                    child: child,
-                                  ),
-                                  child: Text(
+                        child: Hero(
+                          tag: heroDateTag(widget.date),
+                          child: Material(
+                            color: Colors.transparent,
+                            child: AnimatedBuilder(
+                              animation: _pulseAnim,
+                              builder: (_, child) =>
+                                  Opacity(opacity: _pulseAnim.value, child: child),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
                                     DateFormat('EEEE, d MMMM')
                                         .format(widget.date),
                                     style: AsrioText.diaryDate,
                                   ),
-                                ),
+                                  Text(
+                                    DateFormat('yyyy').format(widget.date),
+                                    style: AsrioText.caption,
+                                  ),
+                                ],
                               ),
                             ),
-                            Text(
-                              DateFormat('yyyy').format(widget.date),
-                              style: AsrioText.caption,
-                            ),
-                          ],
+                          ),
                         ),
                       ),
-                      // Auto-save indicator
                       session.when(
                         data: (s) => AnimatedOpacity(
                           opacity: s.isSaving ? 1.0 : 0.0,
                           duration: const Duration(milliseconds: 300),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              SizedBox(
-                                width: 10,
-                                height: 10,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 1.5,
-                                  color: AsrioColors.muted,
-                                ),
-                              ),
-                              const SizedBox(width: 6),
-                              Text('Saving', style: AsrioText.caption),
-                            ],
+                          child: const SizedBox(
+                            width: 12, height: 12,
+                            child: CircularProgressIndicator(
+                                strokeWidth: 1.5,
+                                color: AsrioColors.muted),
                           ),
                         ),
                         loading: () => const SizedBox.shrink(),
-                        error: (_, __) => const SizedBox.shrink(),
+                        error:   (_, __) => const SizedBox.shrink(),
                       ),
                       const SizedBox(width: 8),
                       const Icon(Icons.lock_outline_rounded,
-                          size: 16, color: AsrioColors.muted),
+                          size: 14, color: AsrioColors.muted),
                     ],
                   ),
                 ),
-
                 const Divider(
                     color: AsrioColors.border, height: 1, thickness: 0.8),
-
-                // ── Quill editor canvas ─────────────────────────────
                 Expanded(
-                  child: _quillController == null
+                  child: _ctrl == null
                       ? const Center(
                           child: SizedBox(
-                            width: 20,
-                            height: 20,
+                            width: 16, height: 16,
                             child: CircularProgressIndicator(
-                                strokeWidth: 2, color: AsrioColors.muted),
+                                strokeWidth: 1.5,
+                                color: AsrioColors.muted),
                           ),
                         )
                       : GestureDetector(
-                          onTap: () => _focusNode.requestFocus(),
+                          onTap: () => _focus.requestFocus(),
                           child: QuillEditor.basic(
-                            controller: _quillController!,
-                            focusNode: _focusNode,
+                            controller: _ctrl!,
+                            focusNode: _focus,
                             config: QuillEditorConfig(
-                              padding: const EdgeInsets.fromLTRB(24, 24, 24, 60),
+                              padding: const EdgeInsets.fromLTRB(
+                                  24, 24, 24, 60),
                               placeholder: 'Write your thoughts...',
                               customStyles: DefaultStyles(
                                 paragraph: DefaultTextBlockStyle(
@@ -638,20 +500,19 @@ class _DiaryEditorState extends ConsumerState<_DiaryEditor>
             ),
           ),
 
-          // ── Floating format toolbar (on text selection only) ─────────
-          if (_toolbarVisible && _quillController != null)
+          // Floating format bar
+          if (_toolbarVisible && _ctrl != null)
             Positioned(
               bottom: MediaQuery.of(context).viewInsets.bottom + 8,
-              left: 16,
-              right: 16,
-              child: _FloatingFormatBar(controller: _quillController!),
+              left: 16, right: 16,
+              child: _FormatBar(controller: _ctrl!),
             ),
 
-          // ── Ghost Mode blur overlay ──────────────────────────────────
+          // Ghost Mode blur
           if (_isBlurred)
             Positioned.fill(
               child: GestureDetector(
-                onTap: _requestAuthAfterResume,
+                onTap: _requestAuth,
                 child: BackdropFilter(
                   filter: ImageFilter.blur(sigmaX: 28, sigmaY: 28),
                   child: Container(
@@ -661,9 +522,8 @@ class _DiaryEditorState extends ConsumerState<_DiaryEditor>
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Container(
-                            width: 64,
-                            height: 64,
-                            decoration: BoxDecoration(
+                            width: 64, height: 64,
+                            decoration: const BoxDecoration(
                               color: AsrioColors.black,
                               shape: BoxShape.circle,
                             ),
@@ -678,7 +538,7 @@ class _DiaryEditorState extends ConsumerState<_DiaryEditor>
                               style: AsrioText.bodyMuted),
                           const SizedBox(height: 28),
                           GestureDetector(
-                            onTap: _requestAuthAfterResume,
+                            onTap: _requestAuth,
                             child: Container(
                               padding: const EdgeInsets.symmetric(
                                   horizontal: 28, vertical: 14),
@@ -704,10 +564,10 @@ class _DiaryEditorState extends ConsumerState<_DiaryEditor>
   }
 }
 
-// ── Floating Format Bar ───────────────────────────────────────────────────────
+// ── Floating toolbar ──────────────────────────────────────────────────────────
 
-class _FloatingFormatBar extends StatelessWidget {
-  const _FloatingFormatBar({required this.controller});
+class _FormatBar extends StatelessWidget {
+  const _FormatBar({required this.controller});
   final QuillController controller;
 
   @override
@@ -719,8 +579,8 @@ class _FloatingFormatBar extends StatelessWidget {
         boxShadow: [
           BoxShadow(
             color: AsrioColors.black.withAlpha(50),
-            blurRadius: 24,
-            offset: const Offset(0, 6),
+            blurRadius: 20,
+            offset: const Offset(0, 4),
           ),
         ],
       ),
@@ -729,9 +589,9 @@ class _FloatingFormatBar extends StatelessWidget {
         config: QuillSimpleToolbarConfig(
           showBoldButton: true,
           showItalicButton: true,
+          showListBullets: true,
           showUnderLineButton: false,
           showStrikeThrough: false,
-          showListBullets: true,
           showListNumbers: false,
           showListCheck: false,
           showCodeBlock: false,
@@ -757,12 +617,10 @@ class _FloatingFormatBar extends StatelessWidget {
           buttonOptions: QuillSimpleToolbarButtonOptions(
             base: QuillToolbarBaseButtonOptions(
               iconTheme: QuillIconTheme(
-                iconButtonUnselectedData: const IconButtonData(
-                  color: AsrioColors.muted,
-                ),
-                iconButtonSelectedData: const IconButtonData(
-                  color: AsrioColors.white,
-                ),
+                iconButtonUnselectedData:
+                    const IconButtonData(color: AsrioColors.muted),
+                iconButtonSelectedData:
+                    const IconButtonData(color: AsrioColors.white),
               ),
             ),
           ),

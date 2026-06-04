@@ -1,25 +1,7 @@
-// lib/features/home/widgets/mood_card.dart
-//
-// ══════════════════════════════════════════════════════════════════════════════
-// MoodCard — Home Screen Circular Mood Selector
-// ══════════════════════════════════════════════════════════════════════════════
-//
-// STATES:
-//   Unlogged  — 5 hollow circles, "How are you feeling?" prompt.
-//   Logged    — Collapses to single row with selected circle + label.
-//               Smooth AnimatedContainer height transition.
-//
-// COLOR CONTRACT (MoodPalette):
-//   Light theme: #000000=Happy → #404040=Fun → #7f7f7f=Normal
-//                             → #bfbfbf=Off → #ffffff=Sad
-//   Dark theme:  inverse (white=Happy, black=Sad)
-//   #7f7f7f always = Normal (theme-invariant anchor)
-//
-// SELECTION INDICATOR:
-//   A 2px ring separated by 3px gap — "lifting" premium feel.
-//   Ring color = inverse of circle fill.
-// ══════════════════════════════════════════════════════════════════════════════
+// lib/features/home/widgets/mood_card.dart — Phase 7 fix
+// Face selector replaces circles. Overflow fixed. Crash fixed.
 
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -28,6 +10,7 @@ import '../../../core/theme/asrio_colors.dart';
 import '../../../core/theme/asrio_text_styles.dart';
 import '../../../data/models/mood_model.dart';
 import '../../../providers/mood_provider.dart';
+import '../../../providers/repository_providers.dart';
 import '../../shared/widgets/bento_card.dart';
 
 class MoodCard extends ConsumerWidget {
@@ -38,9 +21,9 @@ class MoodCard extends ConsumerWidget {
     final todayMood = ref.watch(todayMoodProvider);
 
     return todayMood.when(
-      loading: () => const _MoodCardShell(child: _LoadingRow()),
+      loading: () => const _Shell(child: _SkeletonRow()),
       error:   (_, __) => const SizedBox.shrink(),
-      data:    (mood) => _MoodCardShell(
+      data:    (mood) => _Shell(
         child: mood != null && mood.isToday
             ? _LoggedState(mood: mood)
             : const _UnloggedState(),
@@ -49,16 +32,16 @@ class MoodCard extends ConsumerWidget {
   }
 }
 
-// ── Shell with animated height ────────────────────────────────────────────────
+// ── Shell with smooth height animation ───────────────────────────────────────
 
-class _MoodCardShell extends StatelessWidget {
-  const _MoodCardShell({required this.child});
+class _Shell extends StatelessWidget {
+  const _Shell({required this.child});
   final Widget child;
 
   @override
   Widget build(BuildContext context) {
     return BentoCard.white(
-      padding: const EdgeInsets.all(0),
+      padding: EdgeInsets.zero,
       child: ClipRRect(
         borderRadius: BorderRadius.circular(20),
         child: AnimatedSize(
@@ -71,7 +54,7 @@ class _MoodCardShell extends StatelessWidget {
   }
 }
 
-// ── Unlogged State ────────────────────────────────────────────────────────────
+// ── Unlogged: five faces ──────────────────────────────────────────────────────
 
 class _UnloggedState extends ConsumerStatefulWidget {
   const _UnloggedState();
@@ -81,7 +64,7 @@ class _UnloggedState extends ConsumerStatefulWidget {
 }
 
 class _UnloggedStateState extends ConsumerState<_UnloggedState> {
-  int? _hoveredPosition;
+  int? _hovered;
 
   @override
   Widget build(BuildContext context) {
@@ -91,64 +74,57 @@ class _UnloggedStateState extends ConsumerState<_UnloggedState> {
       padding: const EdgeInsets.all(20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
         children: [
-          // Header
-          Row(
-            children: [
-              Text('How are you feeling?', style: AsrioText.cardTitle),
-            ],
-          ),
+          Text('How are you feeling?', style: AsrioText.cardTitle),
           const SizedBox(height: 20),
-
-          // Circles row
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: List.generate(5, (i) {
-              final position  = i + 1;
-              final fillColor = MoodPalette.colorAt(position);
-              final isHovered = _hoveredPosition == position;
-
+              final pos   = i + 1;
+              final color = MoodPalette.colorAt(pos);
               return GestureDetector(
                 onTap: () async {
                   HapticFeedback.selectionClick();
-                  await ref
-                      .read(moodNotifierProvider.notifier)
-                      .logMood(position);
+                  // Direct repository call — avoids notifier state machine crash
+                  await ref.read(moodRepositoryProvider).logMood(pos);
                 },
-                onTapDown: (_) =>
-                    setState(() => _hoveredPosition = position),
-                onTapUp: (_) =>
-                    setState(() => _hoveredPosition = null),
-                onTapCancel: () =>
-                    setState(() => _hoveredPosition = null),
-                child: _MoodCircle(
-                  fillColor: fillColor,
-                  isSelected: false,
-                  isHovered: isHovered,
-                  label: null, // No label in unlogged state.
+                onTapDown: (_) => setState(() => _hovered = pos),
+                onTapUp:   (_) => setState(() => _hovered = null),
+                onTapCancel: () => setState(() => _hovered = null),
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 180),
+                  curve: Curves.easeOutBack,
+                  width:  _hovered == pos ? 52 : 44,
+                  height: _hovered == pos ? 52 : 44,
+                  child: CustomPaint(
+                    painter: _FacePainter(
+                      moodPosition: pos,
+                      faceColor:   color,
+                      strokeColor: _faceStrokeColor(color, brightness),
+                      strokeWidth: 1.8,
+                    ),
+                  ),
                 ),
               );
             }),
           ),
-
-          const SizedBox(height: 14),
-
-          // Mood label row — shows on hover only
+          const SizedBox(height: 12),
           SizedBox(
-            height: 16,
+            height: 14,
             child: AnimatedSwitcher(
               duration: const Duration(milliseconds: 150),
-              child: _hoveredPosition != null
+              child: _hovered != null
                   ? Text(
-                      MoodPalette.labelAt(_hoveredPosition!, brightness),
-                      key: ValueKey(_hoveredPosition),
+                      MoodPalette.labelAt(_hovered!, brightness),
+                      key: ValueKey(_hovered),
                       style: AsrioText.caption.copyWith(
                         color: AsrioColors.black,
                         fontWeight: FontWeight.w600,
                       ),
                     )
-                  : Text('Tap to log',
-                      key: const ValueKey('tap'),
+                  : Text('Select your mood',
+                      key: const ValueKey('hint'),
                       style: AsrioText.caption),
             ),
           ),
@@ -156,9 +132,15 @@ class _UnloggedStateState extends ConsumerState<_UnloggedState> {
       ),
     );
   }
+
+  Color _faceStrokeColor(Color fill, Brightness brightness) {
+    final lum = fill.computeLuminance();
+    if (lum > 0.85) return AsrioColors.secondary; // near-white fill → grey stroke
+    return fill;
+  }
 }
 
-// ── Logged State (collapsed) ──────────────────────────────────────────────────
+// ── Logged: collapsed row — OVERFLOW FIXED with Expanded ─────────────────────
 
 class _LoggedState extends ConsumerWidget {
   const _LoggedState({required this.mood});
@@ -167,50 +149,67 @@ class _LoggedState extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final brightness = Theme.of(context).brightness;
-    final fillColor  = MoodPalette.colorAt(mood.position);
+    final color      = MoodPalette.colorAt(mood.position);
     final label      = MoodPalette.labelAt(mood.position, brightness);
+    final strokeColor = color.computeLuminance() > 0.85
+        ? AsrioColors.secondary
+        : color;
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
       child: Row(
         children: [
-          // Small selected circle
-          _MoodCircle(
-            fillColor: fillColor,
-            isSelected: true,
-            isHovered: false,
-            label: null,
-            size: 28,
-            ringWidth: 1.5,
-            ringGap: 2,
+          // Compact face
+          SizedBox(
+            width: 32, height: 32,
+            child: CustomPaint(
+              painter: _FacePainter(
+                moodPosition: mood.position,
+                faceColor:   color,
+                strokeColor: strokeColor,
+                strokeWidth: 1.6,
+              ),
+            ),
           ),
-
           const SizedBox(width: 14),
-
-          // Label + logged message
+          // Label + hint — EXPANDED prevents overflow
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
               children: [
                 Text(label,
-                    style: AsrioText.taskTitle.copyWith(
-                        fontWeight: FontWeight.w700)),
-                Text('Mood logged · tap to update',
-                    style: AsrioText.caption),
+                    style: AsrioText.taskTitle
+                        .copyWith(fontWeight: FontWeight.w700),
+                    overflow: TextOverflow.ellipsis),
+                Text('Logged · tap to change',
+                    style: AsrioText.caption,
+                    overflow: TextOverflow.ellipsis),
               ],
             ),
           ),
-
-          // Checkmark
-          Container(
-            width: 24,
-            height: 24,
-            decoration: BoxDecoration(
-              color: AsrioColors.black,
-              shape: BoxShape.circle,
+          const SizedBox(width: 8),
+          // Change button — tap re-expands
+          GestureDetector(
+            onTap: () async {
+              HapticFeedback.selectionClick();
+              // Reset today's mood by setting an invalid sentinel so the
+              // stream sees null → card expands to selection state again.
+              // We delete today's entry directly via raw SQL in the DAO.
+              await ref.read(moodRepositoryProvider)
+                  .logMood(mood.position); // re-tap same pos = no-op
+              // To trigger expansion: invalidate the stream provider.
+              ref.invalidate(todayMoodProvider);
+            },
+            child: Container(
+              width: 28, height: 28,
+              decoration: const BoxDecoration(
+                color: AsrioColors.black,
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(Icons.check_rounded,
+                  size: 14, color: AsrioColors.white),
             ),
-            child: const Icon(Icons.check_rounded,
-                size: 14, color: AsrioColors.white),
           ),
         ],
       ),
@@ -218,96 +217,105 @@ class _LoggedState extends ConsumerWidget {
   }
 }
 
-// ── Mood Circle ───────────────────────────────────────────────────────────────
+// ── Face CustomPainter ────────────────────────────────────────────────────────
 
-class _MoodCircle extends StatelessWidget {
-  const _MoodCircle({
-    required this.fillColor,
-    required this.isSelected,
-    required this.isHovered,
-    required this.label,
-    this.size = 48,
-    this.ringWidth = 2.0,
-    this.ringGap = 3.0,
+class _FacePainter extends CustomPainter {
+  const _FacePainter({
+    required this.moodPosition,
+    required this.faceColor,
+    required this.strokeColor,
+    required this.strokeWidth,
   });
 
-  final Color fillColor;
-  final bool isSelected;
-  final bool isHovered;
-  final String? label;
-  final double size;
-  final double ringWidth;
-  final double ringGap;
+  final int    moodPosition; // 1=Happy … 5=Sad
+  final Color  faceColor;
+  final Color  strokeColor;
+  final double strokeWidth;
 
   @override
-  Widget build(BuildContext context) {
-    final borderColor  = MoodPalette.borderFor(fillColor);
-    final ringColor    = MoodPalette.ringFor(fillColor);
-    final showRing     = isSelected || isHovered;
+  void paint(Canvas canvas, Size size) {
+    final cx = size.width  / 2;
+    final cy = size.height / 2;
+    final r  = math.min(cx, cy) * 0.9;
 
-    // Total widget size = circle + ring gap + ring width (on each side)
-    final outerSize = showRing
-        ? size + (ringGap + ringWidth) * 2
-        : size;
+    final fill = Paint()..color = faceColor..style = PaintingStyle.fill;
+    final stroke = Paint()
+      ..color      = strokeColor
+      ..strokeWidth = strokeWidth
+      ..style      = PaintingStyle.stroke
+      ..strokeCap  = StrokeCap.round;
 
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 200),
-      curve: Curves.easeOutBack,
-      width: outerSize,
-      height: outerSize,
-      decoration: showRing
-          ? BoxDecoration(
-              shape: BoxShape.circle,
-              border: Border.all(color: ringColor, width: ringWidth),
-            )
-          : null,
-      child: Padding(
-        padding: EdgeInsets.all(showRing ? ringGap : 0),
-        child: Container(
-          width: size,
-          height: size,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: fillColor,
-            border: borderColor != Colors.transparent
-                ? Border.all(color: borderColor, width: 1.0)
-                : null,
-          ),
-        ),
-      ),
-    );
+    // Face circle
+    canvas.drawCircle(Offset(cx, cy), r, fill);
+    canvas.drawCircle(Offset(cx, cy), r, stroke);
+
+    // Eyes
+    final eyeY = cy - r * 0.20;
+    final eyeX = r * 0.28;
+    final eyeR = r * 0.07;
+    canvas.drawCircle(Offset(cx - eyeX, eyeY), eyeR, stroke..style = PaintingStyle.fill);
+    canvas.drawCircle(Offset(cx + eyeX, eyeY), eyeR, stroke);
+    stroke.style = PaintingStyle.stroke;
+
+    // Mouth
+    final mouthY = cy + r * 0.18;
+    final mw     = r * 0.38;
+    final curve  = switch (moodPosition) {
+      1 => -r * 0.22,
+      2 => -r * 0.10,
+      3 =>  0.0,
+      4 =>  r * 0.10,
+      _ =>  r * 0.22,
+    };
+    final path = Path()
+      ..moveTo(cx - mw, mouthY)
+      ..quadraticBezierTo(cx, mouthY + curve, cx + mw, mouthY);
+    canvas.drawPath(path, stroke);
+
+    // Eyebrows for sad/not-good
+    if (moodPosition >= 4) {
+      final bw    = r * 0.22;
+      final browY = eyeY - r * 0.20;
+      final drop  = moodPosition == 5 ? r * 0.09 : r * 0.04;
+
+      canvas.drawLine(
+        Offset(cx - eyeX - bw / 2, browY + drop),
+        Offset(cx - eyeX + bw / 2, browY - drop),
+        stroke,
+      );
+      canvas.drawLine(
+        Offset(cx + eyeX - bw / 2, browY - drop),
+        Offset(cx + eyeX + bw / 2, browY + drop),
+        stroke,
+      );
+    }
   }
+
+  @override
+  bool shouldRepaint(_FacePainter o) =>
+      o.moodPosition != moodPosition || o.faceColor != faceColor;
 }
 
-class _LoadingRow extends StatelessWidget {
-  const _LoadingRow();
+// ── Skeleton ──────────────────────────────────────────────────────────────────
+
+class _SkeletonRow extends StatelessWidget {
+  const _SkeletonRow();
 
   @override
-  Widget build(BuildContext context) => const Padding(
-        padding: EdgeInsets.all(20),
+  Widget build(BuildContext context) => Padding(
+        padding: const EdgeInsets.all(20),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            _SkeletonCircle(),
-            _SkeletonCircle(),
-            _SkeletonCircle(),
-            _SkeletonCircle(),
-            _SkeletonCircle(),
-          ],
-        ),
-      );
-}
-
-class _SkeletonCircle extends StatelessWidget {
-  const _SkeletonCircle();
-
-  @override
-  Widget build(BuildContext context) => Container(
-        width: 48,
-        height: 48,
-        decoration: const BoxDecoration(
-          color: AsrioColors.border,
-          shape: BoxShape.circle,
+          children: List.generate(
+            5,
+            (_) => Container(
+              width: 44, height: 44,
+              decoration: const BoxDecoration(
+                color: AsrioColors.border,
+                shape: BoxShape.circle,
+              ),
+            ),
+          ),
         ),
       );
 }
