@@ -1933,3 +1933,77 @@ Another exception was thrown: A RenderFlex overflowed by 50 pixels on the right.
 Another exception was thrown: A RenderFlex overflowed by 50 pixels on the right.
 Another exception was thrown: A RenderFlex overflowed by 50 pixels on the right.
 ```
+Here is your organized and formatted Markdown document summarizing the identified Flutter issues and their respective solutions.
+
+---
+
+## 1. Build & Lifecycle Crashes
+
+## Issue 1: Build Failure (Missing Core Library Desugaring)
+
+* **Symptom:** The build fails because the `flutter_local_notifications` package requires Java core library desugaring to support newer Java APIs on older Android devices.
+
+* **Fix:** Update `android/app/build.gradle` to enable desugaring and add the required dependency.
+
+```groovy
+android {
+    compileOptions {
+        coreLibraryDesugaringEnabled true
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+}
+
+dependencies {
+    coreLibraryDesugaring 'com.android.tools.build:desugaring:2.0.4'
+}
+
+```
+
+## Issue 2: Framework Crash (`_ElementLifecycle.active: is not true`)
+
+* **Symptom:** Flutter assertion error occurs when `setState()` is called after a widget has been disposed (frequently happens after asynchronous operations or animations in `_DiaryEditorState`, `_TaskBodyState`, or `_UnloggedStateState`).
+* 
+* **Fix:** Add a safety check using `mounted` before calling `setState()`.
+
+```dark
+if (mounted) {
+    setState(() {
+        // Update state safely here
+    });
+}
+
+```
+
+---
+
+## 2. UI & Overflow Layout Bugs
+
+## Issue 3: Statistics Screen Header Overflow
+
+* **Symptom:** `"RIGHT OVERFLOWED BY 3.2 PX"` in the header row. The `RangeSwitcher` widget is too wide for the available screen horizontal space next to the "Statistics" text.
+* **Fix:** Wrap the row elements in `Expanded` / `Flexible` widgets, reduce explicit padding/widths, or make the header section scrollable/responsive.
+
+## Issue 4: Settings Screen Row Layout Overflow
+
+* **Symptom:** Layout elements are clipping or throwing overflow exceptions within the Settings page due to a rigid horizontal `Row` layout.
+* **Fix:** Introduce constraint-handling widgets like `Flexible` or switch to a `Wrap` widget to handle smaller viewport sizes gracefully.
+
+---
+
+## 3. Feature & State Management Defect List
+
+## Issue 5: To-Do Screen Task State Desync
+
+* **Symptom:** Active tasks incorrectly render as already completed (filled checkboxes). This behavior stems from an state mismatch/recycling issue inside `AnimatedList`.
+* **Fix:** Ensure each item in the list is assigned a unique, explicit `ValueKey` (e.g., `key: ValueKey(task.id)`) so the framework properly maps data to the correct widget state during animations.
+
+## Issue 6: Diary Pencil Icon Inactive
+
+* **Symptom:** Clicking the pencil icon fails to create new diary entries.
+* **Fix:** Fix broken async handling or unawaited `Futures` within the icon's `onPressed` callback flow.
+
+## Issue 7: Mood Selector Customization
+
+* **Symptom:** Requirement to reduce selection options down to 4 moods and remove the "Happy" option (associated with the black circle face).
+* **Fix:** Update the backing array/enum for the mood selector widget, eliminating the "Happy" object asset and updating layout constraints to cleanly align the remaining 4 cards.
