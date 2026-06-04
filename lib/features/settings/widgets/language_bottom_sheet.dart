@@ -50,7 +50,7 @@ class _LanguageSheet extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final current = ref.watch(localeCodeProvider);
-    final locales = AsrioLocalizationsDelegate.supportedLocales;
+    const locales = AsrioLocalizationsDelegate.supportedLocales;
 
     return Container(
       height: MediaQuery.of(context).size.height * 0.75,
@@ -78,7 +78,7 @@ class _LanguageSheet extends ConsumerWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text('Language', style: AsrioText.cardTitle),
+                    const Text('Language', style: AsrioText.cardTitle),
                     Text(
                       '${locales.length} languages',
                       style: AsrioText.bodyMuted,

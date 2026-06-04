@@ -38,7 +38,7 @@ class MoodCorrelationCard extends ConsumerWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Header
-              Row(
+              const Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text('Mood & Output', style: AsrioText.cardTitle),
@@ -50,7 +50,7 @@ class MoodCorrelationCard extends ConsumerWidget {
                         label: 'Output',
                         dashed: false,
                       ),
-                      const SizedBox(height: 4),
+                      SizedBox(height: 4),
                       _LegendItem(
                         color: AsrioColors.muted,
                         label: 'Mood',
@@ -253,12 +253,12 @@ class _EmptyCorrelation extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BentoCard.white(
+    return const BentoCard.white(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text('Mood & Output', style: AsrioText.cardTitle),
-          const SizedBox(height: 12),
+          SizedBox(height: 12),
           Text(
             'Log your mood on the home screen to see how it correlates with your productivity.',
             style: AsrioText.bodyMuted,

@@ -17,14 +17,12 @@
 //   updates the existing row rather than creating duplicates.
 // ══════════════════════════════════════════════════════════════════════════════
 
-import 'dart:typed_data';
 
 import 'package:drift/drift.dart';
 import 'package:flutter/foundation.dart';
 
 import '../../core/encryption/encryption_service.dart';
-import '../../core/utils/app_exceptions.dart'
-    hide EncryptionException; // Use EncryptionService's own exception.
+// Use EncryptionService's own exception.
 import '../../core/utils/app_exceptions.dart' as ex;
 import '../database/app_database.dart';
 import '../database/daos/diary_dao.dart';

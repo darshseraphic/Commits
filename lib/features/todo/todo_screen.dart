@@ -39,7 +39,7 @@ class TodoScreen extends ConsumerWidget {
                     Text(DateFormat('EEEE, d MMMM').format(DateTime.now()),
                         style: AsrioText.greeting),
                     const SizedBox(height: 4),
-                    Text('Your tasks', style: AsrioText.bodyMuted),
+                    const Text('Your tasks', style: AsrioText.bodyMuted),
                   ],
                 ),
               ),
@@ -198,7 +198,7 @@ class _TaskBodyState extends ConsumerState<_TaskBody> {
 
           // ── Animated task list ────────────────────────────────────────
           if (listTasks.isNotEmpty) ...[
-            Text('TASKS', style: AsrioText.label),
+            const Text('TASKS', style: AsrioText.label),
             const SizedBox(height: 10),
             AnimatedList(
               key: _listKey,
@@ -234,7 +234,7 @@ class _TaskBodyState extends ConsumerState<_TaskBody> {
 
           // ── Completed section ─────────────────────────────────────────
           if (completed.isNotEmpty) ...[
-            Text('COMPLETED', style: AsrioText.label),
+            const Text('COMPLETED', style: AsrioText.label),
             const SizedBox(height: 10),
             ...completed.map((t) => _CompletedTaskRow(task: t)),
           ],
@@ -313,10 +313,10 @@ class _FocusBentoCardState extends ConsumerState<_FocusBentoCard>
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(children: [
-                    const Icon(Icons.bolt_rounded,
+                  const Row(children: [
+                    Icon(Icons.bolt_rounded,
                         color: AsrioColors.white, size: 13),
-                    const SizedBox(width: 5),
+                    SizedBox(width: 5),
                     Text('PRIORITY ONE', style: AsrioText.labelWhite),
                   ]),
                   const SizedBox(height: 10),
@@ -610,7 +610,7 @@ class _AddTaskSheetState extends State<_AddTaskSheet> {
               ),
             ),
             const SizedBox(height: 24),
-            Text('New Task', style: AsrioText.cardTitle),
+            const Text('New Task', style: AsrioText.cardTitle),
             const SizedBox(height: 20),
             TextField(
               controller: _controller,
@@ -619,7 +619,7 @@ class _AddTaskSheetState extends State<_AddTaskSheet> {
               maxLines: null,
               textInputAction: TextInputAction.done,
               onSubmitted: (_) => _submit(),
-              decoration: InputDecoration(
+              decoration: const InputDecoration(
                 hintText: 'What needs to be done?',
                 hintStyle: AsrioText.bodyMuted,
                 border: InputBorder.none,
@@ -694,16 +694,16 @@ class _AddTaskSheetState extends State<_AddTaskSheet> {
 class _EmptyState extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return Center(
+    return const Center(
       child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 60),
+        padding: EdgeInsets.symmetric(vertical: 60),
         child: Column(
           children: [
-            const Icon(Icons.check_circle_outline_rounded,
+            Icon(Icons.check_circle_outline_rounded,
                 size: 48, color: AsrioColors.muted),
-            const SizedBox(height: 16),
+            SizedBox(height: 16),
             Text('Nothing to do.', style: AsrioText.cardTitle),
-            const SizedBox(height: 6),
+            SizedBox(height: 6),
             Text('Tap + to add your first task.',
                 style: AsrioText.bodyMuted),
           ],

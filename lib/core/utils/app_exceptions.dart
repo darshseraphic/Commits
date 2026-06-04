@@ -20,7 +20,7 @@ abstract class AsrioException implements Exception {
   final Object? cause;
 
   @override
-  String toString() => '${runtimeType}: $message'
+  String toString() => '$runtimeType: $message'
       '${cause != null ? '\nCaused by: $cause' : ''}';
 }
 

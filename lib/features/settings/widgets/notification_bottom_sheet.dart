@@ -118,11 +118,11 @@ class _NotificationSheetState extends ConsumerState<_NotificationSheet> {
           ),
           const SizedBox(height: 24),
 
-          Text('Notifications', style: AsrioText.cardTitle),
+          const Text('Notifications', style: AsrioText.cardTitle),
           const SizedBox(height: 24),
 
           // ── Diary Reminder ────────────────────────────────────────
-          _SectionLabel(label: 'DIARY REMINDER'),
+          const _SectionLabel(label: 'DIARY REMINDER'),
           const SizedBox(height: 10),
 
           // Diary toggle row
@@ -156,7 +156,7 @@ class _NotificationSheetState extends ConsumerState<_NotificationSheet> {
           const SizedBox(height: 24),
 
           // ── Task Reminders ────────────────────────────────────────
-          _SectionLabel(label: 'TASK REMINDERS'),
+          const _SectionLabel(label: 'TASK REMINDERS'),
           const SizedBox(height: 10),
 
           _ToggleRow(
@@ -250,7 +250,7 @@ class _TimePickerSheetState extends State<_TimePickerSheet> {
             ),
           ),
           const SizedBox(height: 16),
-          Text('Set Time', style: AsrioText.cardTitle),
+          const Text('Set Time', style: AsrioText.cardTitle),
           const SizedBox(height: 8),
 
           // CupertinoTimerPicker styled B/W
@@ -405,7 +405,7 @@ class _TimeRow extends StatelessWidget {
             const Icon(Icons.schedule_rounded,
                 size: 18, color: AsrioColors.black),
             const SizedBox(width: 12),
-            Text('Remind me at', style: AsrioText.taskTitle),
+            const Text('Remind me at', style: AsrioText.taskTitle),
             const Spacer(),
             Text(time,
                 style: AsrioText.taskTitle.copyWith(

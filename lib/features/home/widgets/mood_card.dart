@@ -76,7 +76,7 @@ class _UnloggedStateState extends ConsumerState<_UnloggedState> {
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text('How are you feeling?', style: AsrioText.cardTitle),
+          const Text('How are you feeling?', style: AsrioText.cardTitle),
           const SizedBox(height: 20),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -123,8 +123,8 @@ class _UnloggedStateState extends ConsumerState<_UnloggedState> {
                         fontWeight: FontWeight.w600,
                       ),
                     )
-                  : Text('Select your mood',
-                      key: const ValueKey('hint'),
+                  : const Text('Select your mood',
+                      key: ValueKey('hint'),
                       style: AsrioText.caption),
             ),
           ),
@@ -182,7 +182,7 @@ class _LoggedState extends ConsumerWidget {
                     style: AsrioText.taskTitle
                         .copyWith(fontWeight: FontWeight.w700),
                     overflow: TextOverflow.ellipsis),
-                Text('Logged · tap to change',
+                const Text('Logged · tap to change',
                     style: AsrioText.caption,
                     overflow: TextOverflow.ellipsis),
               ],

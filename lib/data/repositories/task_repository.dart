@@ -114,7 +114,7 @@ class TaskRepository {
     // Return the complete created model.
     final created = await _dao.findById(newId);
     if (created == null) {
-      throw DatabaseException('Task was inserted but could not be retrieved.');
+      throw const DatabaseException('Task was inserted but could not be retrieved.');
     }
     return _toModel(created);
   }

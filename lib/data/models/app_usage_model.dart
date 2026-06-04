@@ -72,5 +72,5 @@ class AppUsageModel {
 
   @override
   String toString() =>
-      'AppUsageModel($appName: $formattedDuration, ${formattedPercentage})';
+      'AppUsageModel($appName: $formattedDuration, $formattedPercentage)';
 }

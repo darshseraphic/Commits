@@ -31,17 +31,17 @@ class UsageListCard extends ConsumerWidget {
 
     // ── Loading ───────────────────────────────────────────────────────────
     if (state.appUsageStats.isLoading) {
-      return BentoCard.white(
+      return const BentoCard.white(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text('Screen Time', style: AsrioText.cardTitle),
-            const SizedBox(height: 20),
-            const Center(
+            SizedBox(height: 20),
+            Center(
               child: CircularProgressIndicator(
                   color: AsrioColors.black, strokeWidth: 2),
             ),
-            const SizedBox(height: 20),
+            SizedBox(height: 20),
           ],
         ),
       );
@@ -51,12 +51,12 @@ class UsageListCard extends ConsumerWidget {
 
     // ── No data ───────────────────────────────────────────────────────────
     if (apps.isEmpty) {
-      return BentoCard.white(
+      return const BentoCard.white(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text('Screen Time', style: AsrioText.cardTitle),
-            const SizedBox(height: 16),
+            SizedBox(height: 16),
             Text('No usage data for today yet.',
                 style: AsrioText.bodyMuted),
           ],
@@ -84,14 +84,14 @@ class UsageListCard extends ConsumerWidget {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text('Screen Time', style: AsrioText.cardTitle),
+                const Text('Screen Time', style: AsrioText.cardTitle),
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
                     Text(totalModel.formattedDuration,
                         style: AsrioText.cardTitle.copyWith(
                             fontWeight: FontWeight.w800)),
-                    Text('TODAY', style: AsrioText.label),
+                    const Text('TODAY', style: AsrioText.label),
                   ],
                 ),
               ],
@@ -210,16 +210,16 @@ class _PermissionCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
+          const Row(
             children: [
-              const Icon(Icons.phone_android_outlined,
+              Icon(Icons.phone_android_outlined,
                   size: 24, color: AsrioColors.black),
-              const SizedBox(width: 12),
+              SizedBox(width: 12),
               Text('Screen Time', style: AsrioText.cardTitle),
             ],
           ),
           const SizedBox(height: 12),
-          Text(
+          const Text(
             'Allow ASRIO to see your app usage to show screen time insights.',
             style: AsrioText.bodyMuted,
           ),

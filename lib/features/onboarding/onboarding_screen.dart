@@ -100,7 +100,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                 right: 24,
                 child: GestureDetector(
                   onTap: _skip,
-                  child: Text('Skip', style: AsrioText.bodyMuted),
+                  child: const Text('Skip', style: AsrioText.bodyMuted),
                 ),
               ),
 

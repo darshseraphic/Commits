@@ -1,6 +1,5 @@
 // lib/providers/consistency_provider.dart — Hardcore fix: no MoodLog type
 
-import 'package:drift/drift.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../data/database/daos/mood_dao.dart';

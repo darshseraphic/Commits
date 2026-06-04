@@ -109,7 +109,7 @@ class StreakModel {
     currentStreak: 0,
     longestStreak: 0,
     totalActiveDays: 0,
-    activeDates: {},
+    activeDates: const {},
     calculatedAt: DateTime.fromMillisecondsSinceEpoch(0),
   );
 

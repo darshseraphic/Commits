@@ -172,39 +172,39 @@ abstract final class AppTheme {
         ),
 
         // ── Cards ─────────────────────────────────────────────────────────
-        cardTheme: CardThemeData(
+        cardTheme: const CardThemeData(
           elevation: 0,
           color: Colors.white,
           surfaceTintColor: Colors.transparent,
           shape: _cardShape,
-          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+          margin: EdgeInsets.symmetric(horizontal: 16, vertical: 6),
         ),
 
         // ── Input Fields ──────────────────────────────────────────────────
-        inputDecorationTheme: InputDecorationTheme(
+        inputDecorationTheme: const InputDecorationTheme(
           filled: true,
-          fillColor: const Color(0xFFF0F0F5),
+          fillColor: Color(0xFFF0F0F5),
           border: OutlineInputBorder(
-            borderRadius: const BorderRadius.all(Radius.circular(12)),
+            borderRadius: BorderRadius.all(Radius.circular(12)),
             borderSide: BorderSide.none,
           ),
           enabledBorder: OutlineInputBorder(
-            borderRadius: const BorderRadius.all(Radius.circular(12)),
+            borderRadius: BorderRadius.all(Radius.circular(12)),
             borderSide: BorderSide.none,
           ),
           focusedBorder: OutlineInputBorder(
-            borderRadius: const BorderRadius.all(Radius.circular(12)),
+            borderRadius: BorderRadius.all(Radius.circular(12)),
             borderSide: BorderSide(color: _brandPrimary, width: 1.5),
           ),
-          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         ),
 
         // ── Floating Action Button ────────────────────────────────────────
-        floatingActionButtonTheme: FloatingActionButtonThemeData(
+        floatingActionButtonTheme: const FloatingActionButtonThemeData(
           backgroundColor: _brandPrimary,
           foregroundColor: Colors.white,
           elevation: 2,
-          shape: const RoundedRectangleBorder(
+          shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.all(Radius.circular(16)),
           ),
         ),
@@ -268,37 +268,37 @@ abstract final class AppTheme {
           ),
         ),
 
-        cardTheme: CardThemeData(
+        cardTheme: const CardThemeData(
           elevation: 0,
           color: _cardDark,
           surfaceTintColor: Colors.transparent,
           shape: _cardShape,
-          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+          margin: EdgeInsets.symmetric(horizontal: 16, vertical: 6),
         ),
 
-        inputDecorationTheme: InputDecorationTheme(
+        inputDecorationTheme: const InputDecorationTheme(
           filled: true,
-          fillColor: const Color(0xFF3A3A3C),
+          fillColor: Color(0xFF3A3A3C),
           border: OutlineInputBorder(
-            borderRadius: const BorderRadius.all(Radius.circular(12)),
+            borderRadius: BorderRadius.all(Radius.circular(12)),
             borderSide: BorderSide.none,
           ),
           enabledBorder: OutlineInputBorder(
-            borderRadius: const BorderRadius.all(Radius.circular(12)),
+            borderRadius: BorderRadius.all(Radius.circular(12)),
             borderSide: BorderSide.none,
           ),
           focusedBorder: OutlineInputBorder(
-            borderRadius: const BorderRadius.all(Radius.circular(12)),
+            borderRadius: BorderRadius.all(Radius.circular(12)),
             borderSide: BorderSide(color: _brandPrimaryDark, width: 1.5),
           ),
-          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         ),
 
-        floatingActionButtonTheme: FloatingActionButtonThemeData(
+        floatingActionButtonTheme: const FloatingActionButtonThemeData(
           backgroundColor: _brandPrimaryDark,
           foregroundColor: _surfaceDark,
           elevation: 2,
-          shape: const RoundedRectangleBorder(
+          shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.all(Radius.circular(16)),
           ),
         ),

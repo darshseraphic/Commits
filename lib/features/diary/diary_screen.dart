@@ -142,7 +142,7 @@ class _DiaryList extends ConsumerWidget {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text('Diary', style: AsrioText.greeting),
+                  const Text('Diary', style: AsrioText.greeting),
                   Row(children: [
                     if (lockEnabled)
                       const Padding(
@@ -177,18 +177,18 @@ class _DiaryList extends ConsumerWidget {
               child: activeDates.when(
                 loading: () => const Center(
                     child: CircularProgressIndicator(color: AsrioColors.black)),
-                error: (_, __) => Center(
+                error: (_, __) => const Center(
                     child: Text('Could not load.', style: AsrioText.bodyMuted)),
                 data: (dates) {
                   // Empty state — minimal, no marketing copy
                   if (dates.isEmpty) {
-                    return Center(
+                    return const Center(
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          const Icon(Icons.chrome_reader_mode_outlined,
+                          Icon(Icons.chrome_reader_mode_outlined,
                               size: 40, color: AsrioColors.muted),
-                          const SizedBox(height: 12),
+                          SizedBox(height: 12),
                           Text('No entries yet.',
                               style: AsrioText.bodyMuted),
                         ],
@@ -265,7 +265,7 @@ class _EntryRow extends StatelessWidget {
                   Text(DateFormat('EEEE').format(date),
                       style: AsrioText.diaryDate),
                   const SizedBox(height: 3),
-                  Text('Continue writing...',
+                  const Text('Continue writing...',
                       style: AsrioText.diaryPreview,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis),
@@ -479,16 +479,16 @@ class _DiaryEditorState extends ConsumerState<_DiaryEditor>
                           child: QuillEditor.basic(
                             controller: _ctrl!,
                             focusNode: _focus,
-                            config: QuillEditorConfig(
-                              padding: const EdgeInsets.fromLTRB(
+                            config: const QuillEditorConfig(
+                              padding: EdgeInsets.fromLTRB(
                                   24, 24, 24, 60),
                               placeholder: 'Write your thoughts...',
                               customStyles: DefaultStyles(
                                 paragraph: DefaultTextBlockStyle(
                                   AsrioText.diaryBody,
-                                  const HorizontalSpacing(0, 0),
-                                  const VerticalSpacing(0, 0),
-                                  const VerticalSpacing(0, 0),
+                                  HorizontalSpacing(0, 0),
+                                  VerticalSpacing(0, 0),
+                                  VerticalSpacing(0, 0),
                                   null,
                                 ),
                               ),
@@ -531,10 +531,10 @@ class _DiaryEditorState extends ConsumerState<_DiaryEditor>
                                 color: AsrioColors.white, size: 28),
                           ),
                           const SizedBox(height: 20),
-                          Text('Diary Locked',
+                          const Text('Diary Locked',
                               style: AsrioText.cardTitle),
                           const SizedBox(height: 8),
-                          Text('Tap to authenticate.',
+                          const Text('Tap to authenticate.',
                               style: AsrioText.bodyMuted),
                           const SizedBox(height: 28),
                           GestureDetector(
@@ -586,7 +586,7 @@ class _FormatBar extends StatelessWidget {
       ),
       child: QuillSimpleToolbar(
         controller: controller,
-        config: QuillSimpleToolbarConfig(
+        config: const QuillSimpleToolbarConfig(
           showBoldButton: true,
           showItalicButton: true,
           showListBullets: true,
@@ -618,9 +618,9 @@ class _FormatBar extends StatelessWidget {
             base: QuillToolbarBaseButtonOptions(
               iconTheme: QuillIconTheme(
                 iconButtonUnselectedData:
-                    const IconButtonData(color: AsrioColors.muted),
+                    IconButtonData(color: AsrioColors.muted),
                 iconButtonSelectedData:
-                    const IconButtonData(color: AsrioColors.white),
+                    IconButtonData(color: AsrioColors.white),
               ),
             ),
           ),

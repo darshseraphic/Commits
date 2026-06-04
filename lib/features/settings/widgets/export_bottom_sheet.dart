@@ -55,8 +55,8 @@ class _ExportSheetState extends ConsumerState<_ExportSheet> {
         backgroundColor: AsrioColors.white,
         shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(20)),
-        title: Text('Plaintext export', style: AsrioText.cardTitle),
-        content: Text(
+        title: const Text('Plaintext export', style: AsrioText.cardTitle),
+        content: const Text(
           'Your diary entries will be decrypted in this file.\n\n'
           'Anyone with this file can read your diary. '
           'Store it securely or share only with trusted people.',
@@ -115,9 +115,9 @@ class _ExportSheetState extends ConsumerState<_ExportSheet> {
             ),
           ),
           const SizedBox(height: 24),
-          Text('Export Your Data', style: AsrioText.cardTitle),
+          const Text('Export Your Data', style: AsrioText.cardTitle),
           const SizedBox(height: 8),
-          Text(
+          const Text(
             'Choose how you want to export your ASRIO data.',
             style: AsrioText.bodyMuted,
           ),
@@ -149,7 +149,7 @@ class _ExportSheetState extends ConsumerState<_ExportSheet> {
                             style: AsrioText.taskTitle.copyWith(
                                 fontWeight: FontWeight.w700)),
                         const SizedBox(height: 3),
-                        Text('.enc · AES-256 secured · Device only',
+                        const Text('.enc · AES-256 secured · Device only',
                             style: AsrioText.caption),
                       ],
                     ),
@@ -193,12 +193,12 @@ class _ExportSheetState extends ConsumerState<_ExportSheet> {
                             style: AsrioText.taskTitle.copyWith(
                                 fontWeight: FontWeight.w700)),
                         const SizedBox(height: 3),
-                        Row(
+                        const Row(
                           children: [
-                            const Icon(Icons.warning_amber_rounded,
+                            Icon(Icons.warning_amber_rounded,
                                 size: 11,
                                 color: AsrioColors.secondary),
-                            const SizedBox(width: 4),
+                            SizedBox(width: 4),
                             Text(
                                 '.json · Human readable · Store securely',
                                 style: AsrioText.caption),

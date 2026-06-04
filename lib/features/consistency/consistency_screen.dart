@@ -8,7 +8,6 @@ import 'package:intl/intl.dart';
 
 import '../../core/theme/asrio_colors.dart';
 import '../../core/theme/asrio_text_styles.dart';
-import '../../data/models/habit_model.dart';
 import '../../providers/consistency_provider.dart';
 import '../shared/widgets/bento_card.dart';
 import '../shared/widgets/circular_ring.dart';
@@ -31,15 +30,15 @@ class ConsistencyScreen extends ConsumerWidget {
           slivers: [
 
             // ── Header — no subtext ───────────────────────────────────
-            SliverToBoxAdapter(
+            const SliverToBoxAdapter(
               child: Padding(
-                padding: const EdgeInsets.fromLTRB(20, 28, 20, 0),
+                padding: EdgeInsets.fromLTRB(20, 28, 20, 0),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     Text('Statistics', style: AsrioText.greeting),
-                    const RangeSwitcher(),
+                    RangeSwitcher(),
                   ],
                 ),
               ),
@@ -76,20 +75,20 @@ class ConsistencyScreen extends ConsumerWidget {
             const SliverToBoxAdapter(child: SizedBox(height: 16)),
 
             // ── Screen Time ───────────────────────────────────────────
-            SliverToBoxAdapter(
+            const SliverToBoxAdapter(
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: const UsageListCard(),
+                padding: EdgeInsets.symmetric(horizontal: 20),
+                child: UsageListCard(),
               ),
             ),
 
             const SliverToBoxAdapter(child: SizedBox(height: 16)),
 
             // ── Mood Correlation ──────────────────────────────────────
-            SliverToBoxAdapter(
+            const SliverToBoxAdapter(
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: const MoodCorrelationCard(),
+                padding: EdgeInsets.symmetric(horizontal: 20),
+                child: MoodCorrelationCard(),
               ),
             ),
 
@@ -152,7 +151,7 @@ class _StreakHero extends StatelessWidget {
               children: [
                 Text('$current', style: AsrioText.streakHero),
                 const SizedBox(height: 2),
-                Text('DAYS', style: AsrioText.labelWhite),
+                const Text('DAYS', style: AsrioText.labelWhite),
                 const SizedBox(height: 16),
                 Text(
                   current == 0
@@ -238,7 +237,7 @@ class _GrowthChartState extends State<_GrowthChart>
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('Activity', style: AsrioText.cardTitle),
+              const Text('Activity', style: AsrioText.cardTitle),
               Text('LAST ${widget.range}D', style: AsrioText.label),
             ],
           ),
@@ -325,7 +324,7 @@ class _Heatmap extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('This Month', style: AsrioText.cardTitle),
+              const Text('This Month', style: AsrioText.cardTitle),
               Text(DateFormat('MMMM yyyy').format(now).toUpperCase(),
                   style: AsrioText.label),
             ],
@@ -389,9 +388,9 @@ class _Heatmap extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 10),
-          Row(children: [
+          const Row(children: [
             _Dot(color: AsrioColors.border, label: 'No activity'),
-            const SizedBox(width: 16),
+            SizedBox(width: 16),
             _Dot(color: AsrioColors.black,  label: 'Active'),
           ]),
         ],

@@ -46,9 +46,9 @@ class SettingsScreen extends ConsumerWidget {
           physics: const BouncingScrollPhysics(),
           slivers: [
 
-            SliverToBoxAdapter(
+            const SliverToBoxAdapter(
               child: Padding(
-                padding: const EdgeInsets.fromLTRB(20, 28, 20, 0),
+                padding: EdgeInsets.fromLTRB(20, 28, 20, 0),
                 child: Text('Settings', style: AsrioText.greeting),
               ),
             ),
@@ -70,15 +70,15 @@ class SettingsScreen extends ConsumerWidget {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text('Privacy Vault',
+                            const Text('Privacy Vault',
                                 style: AsrioText.cardTitleWhite),
                             const SizedBox(height: 6),
-                            _Badge(label: 'AES-256 ACTIVE'),
+                            const _Badge(label: 'AES-256 ACTIVE'),
                             const SizedBox(height: 3),
-                            _Badge(label: 'LOCAL ONLY'),
+                            const _Badge(label: 'LOCAL ONLY'),
                             if (diaryLock) ...[
                               const SizedBox(height: 3),
-                              _Badge(label: 'DIARY LOCK ON'),
+                              const _Badge(label: 'DIARY LOCK ON'),
                             ],
                           ],
                         ),
@@ -114,7 +114,7 @@ class SettingsScreen extends ConsumerWidget {
                               size: 26, color: AsrioColors.black,
                             ),
                             const SizedBox(height: 10),
-                            Text('Theme', style: AsrioText.taskTitle),
+                            const Text('Theme', style: AsrioText.taskTitle),
                             Text(isDark ? 'Dark' : 'Light',
                                 style: AsrioText.bodyMuted),
                           ],
@@ -122,15 +122,15 @@ class SettingsScreen extends ConsumerWidget {
                       ),
                     ),
                     const SizedBox(width: 12),
-                    Expanded(
+                    const Expanded(
                       child: BentoCard.white(
-                        padding: const EdgeInsets.all(18),
+                        padding: EdgeInsets.all(18),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Icon(Icons.vibration_rounded,
+                            Icon(Icons.vibration_rounded,
                                 size: 26, color: AsrioColors.black),
-                            const SizedBox(height: 10),
+                            SizedBox(height: 10),
                             Text('Haptics', style: AsrioText.taskTitle),
                             Text('Enabled', style: AsrioText.bodyMuted),
                           ],
@@ -173,7 +173,7 @@ class SettingsScreen extends ConsumerWidget {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text('Notifications', style: AsrioText.taskTitle),
+                            const Text('Notifications', style: AsrioText.taskTitle),
                             Text(diaryOn
                                 ? 'Diary at $timeStr'
                                 : 'No reminders set',
@@ -207,7 +207,7 @@ class SettingsScreen extends ConsumerWidget {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text('Language', style: AsrioText.taskTitle),
+                            const Text('Language', style: AsrioText.taskTitle),
                             Text(_langName(locale), style: AsrioText.bodyMuted),
                           ],
                         ),
@@ -222,9 +222,9 @@ class SettingsScreen extends ConsumerWidget {
 
             const SliverToBoxAdapter(child: SizedBox(height: 24)),
 
-            SliverToBoxAdapter(
+            const SliverToBoxAdapter(
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
+                padding: EdgeInsets.symmetric(horizontal: 20),
                 child: Text('DATA', style: AsrioText.label),
               ),
             ),
@@ -238,11 +238,11 @@ class SettingsScreen extends ConsumerWidget {
                 child: BentoCard.white(
                   padding: const EdgeInsets.all(18),
                   onTap: () => showExportSheet(context),
-                  child: Row(
+                  child: const Row(
                     children: [
-                      const Icon(Icons.download_outlined,
+                      Icon(Icons.download_outlined,
                           size: 22, color: AsrioColors.black),
-                      const SizedBox(width: 14),
+                      SizedBox(width: 14),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -253,7 +253,7 @@ class SettingsScreen extends ConsumerWidget {
                           ],
                         ),
                       ),
-                      const Icon(Icons.chevron_right_rounded,
+                      Icon(Icons.chevron_right_rounded,
                           color: AsrioColors.muted),
                     ],
                   ),
@@ -289,7 +289,7 @@ class SettingsScreen extends ConsumerWidget {
                               Text('Wipe Local Data',
                                   style: AsrioText.taskTitle.copyWith(
                                       color: AsrioColors.dangerBorder)),
-                              Text('Permanently delete everything.',
+                              const Text('Permanently delete everything.',
                                   style: AsrioText.bodyMuted),
                             ],
                           ),
@@ -316,10 +316,10 @@ class SettingsScreen extends ConsumerWidget {
                         style: AsrioText.label
                             .copyWith(color: AsrioColors.black)),
                     const SizedBox(height: 3),
-                    Text('Designed by Darshseraphic',
+                    const Text('Designed by Darshseraphic',
                         style: AsrioText.caption),
                     const SizedBox(height: 3),
-                    Text('All data stays on device.',
+                    const Text('All data stays on device.',
                         style: AsrioText.caption),
                   ],
                 ),
@@ -360,8 +360,8 @@ class SettingsScreen extends ConsumerWidget {
         backgroundColor: AsrioColors.white,
         shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(20)),
-        title: Text('Biometrics unavailable', style: AsrioText.cardTitle),
-        content: Text(
+        title: const Text('Biometrics unavailable', style: AsrioText.cardTitle),
+        content: const Text(
           'No biometrics enrolled. Go to device Settings → Security.',
           style: AsrioText.bodyMuted,
         ),
@@ -387,8 +387,8 @@ class SettingsScreen extends ConsumerWidget {
         backgroundColor: AsrioColors.white,
         shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(20)),
-        title: Text('Wipe all data?', style: AsrioText.cardTitle),
-        content: Text(
+        title: const Text('Wipe all data?', style: AsrioText.cardTitle),
+        content: const Text(
           'This permanently deletes all tasks, diary, habits, and mood logs.',
           style: AsrioText.bodyMuted,
         ),
@@ -502,7 +502,7 @@ class _LockTileState extends State<_LockTile> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Diary Lock', style: AsrioText.taskTitle),
+                const Text('Diary Lock', style: AsrioText.taskTitle),
                 Text(
                   widget.isEnabled
                       ? '$_label required'

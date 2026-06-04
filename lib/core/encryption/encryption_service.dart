@@ -30,7 +30,6 @@
 // ══════════════════════════════════════════════════════════════════════════════
 
 import 'dart:math';
-import 'dart:typed_data';
 
 import 'package:encrypt/encrypt.dart';
 import 'package:flutter/foundation.dart' hide Key;
@@ -181,7 +180,7 @@ class EncryptionService {
 
   void _assertInitialized() {
     if (!_initialized || _cachedKey == null) {
-      throw EncryptionException(
+      throw const EncryptionException(
         'EncryptionService.initialize() must be called before encrypt/decrypt.\n'
         'Did you forget to await it in main.dart?',
       );

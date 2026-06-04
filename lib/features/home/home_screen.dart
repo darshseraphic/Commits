@@ -62,10 +62,10 @@ class HomeScreen extends ConsumerWidget {
             const SliverToBoxAdapter(child: SizedBox(height: 16)),
 
             // ── Mood Card ─────────────────────────────────────────────
-            SliverToBoxAdapter(
+            const SliverToBoxAdapter(
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: const MoodCard(),
+                padding: EdgeInsets.symmetric(horizontal: 20),
+                child: MoodCard(),
               ),
             ),
             const SliverToBoxAdapter(child: SizedBox(height: 16)),
@@ -138,9 +138,9 @@ class _FocusCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(children: [
-            const Icon(Icons.bolt_rounded, color: AsrioColors.white, size: 13),
-            const SizedBox(width: 6),
+          const Row(children: [
+            Icon(Icons.bolt_rounded, color: AsrioColors.white, size: 13),
+            SizedBox(width: 6),
             Text('CURRENT FOCUS', style: AsrioText.labelWhite),
           ]),
           const SizedBox(height: 12),
@@ -192,7 +192,7 @@ class _BentoGrid extends StatelessWidget {
                   children: [
                     CircularRing(progress: progress, size: 44, strokeWidth: 2.5),
                     const SizedBox(height: 10),
-                    Text('Progress', style: AsrioText.taskTitle),
+                    const Text('Progress', style: AsrioText.taskTitle),
                     Text('${(progress * 100).toInt()}%',
                         style: AsrioText.cardTitle),
                   ],
@@ -207,7 +207,7 @@ class _BentoGrid extends StatelessWidget {
                     Text('$completed',
                         style: AsrioText.streakHero.copyWith(fontSize: 32)),
                     const SizedBox(height: 4),
-                    Text('done', style: AsrioText.labelWhite),
+                    const Text('done', style: AsrioText.labelWhite),
                   ],
                 ),
               ),
@@ -220,10 +220,10 @@ class _BentoGrid extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Upcoming', style: AsrioText.cardTitle),
+                  const Text('Upcoming', style: AsrioText.cardTitle),
                   const SizedBox(height: 12),
                   if (active.isEmpty)
-                    Text('All clear', style: AsrioText.bodyMuted)
+                    const Text('All clear', style: AsrioText.bodyMuted)
                   else
                     ...active.map((t) => _MiniRow(title: t.title as String)),
                 ],
@@ -291,7 +291,7 @@ class _QuickStats extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('7-Day Streak', style: AsrioText.cardTitle),
+              const Text('7-Day Streak', style: AsrioText.cardTitle),
               Text('${streak.currentStreak} days',
                   style: AsrioText.label
                       .copyWith(color: AsrioColors.black)),
